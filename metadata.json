@@ -1,0 +1,7 @@
+{
+  "name": "MathLingo Vis",
+  "description": "A gamified, visual college-level math learning platform featuring an interactive whiteboard and AI-powered visualizations.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
