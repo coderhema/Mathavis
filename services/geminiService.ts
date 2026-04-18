@@ -1,8 +1,14 @@
-import { Message, VisualType, VisualContent, MathResponseSchema } from '../types';
+import { Message, VisualType, MathResponseSchema } from '../types';
 import { MathEngine } from './MathEngine';
 
-const modelId = process.env.GROQ_MODEL || 'llama-3.2-90b-vision-preview';
-const groqApiKey = process.env.GROQ_API_KEY || process.env.API_KEY;
+const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
+const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.2-90b-vision-preview';
+const groqApiKey =
+  env?.GROQ_API_KEY ||
+  env?.GROQAPI_KEY ||
+  env?.VITE_GROQ_API_KEY ||
+  env?.API_KEY ||
+  env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
 const systemInstruction = `
@@ -69,6 +75,20 @@ const buildContentParts = (text: string, image?: string) => {
   return parts;
 };
 
+const extractContentText = (content: unknown): string => {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part: any) => {
+        if (typeof part === 'string') return part;
+        if (part && typeof part.text === 'string') return part.text;
+        return '';
+      })
+      .join('');
+  }
+  return '';
+};
+
 const parseJsonResponse = (responseText: string): MathResponseSchema => {
   const cleaned = responseText
     .trim()
@@ -79,6 +99,31 @@ const parseJsonResponse = (responseText: string): MathResponseSchema => {
   return JSON.parse(cleaned) as MathResponseSchema;
 };
 
+const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchema => ({
+  explanation: typeof data.explanation === 'string' ? data.explanation : 'I could not generate a valid response.',
+  visualType: typeof data.visualType === 'string' ? data.visualType : 'NONE',
+  suggestedActions: Array.isArray(data.suggestedActions) ? data.suggestedActions.filter((x): x is string => typeof x === 'string') : [],
+  plotFormula: data.plotFormula,
+  plotDomainMin: data.plotDomainMin,
+  plotDomainMax: data.plotDomainMax,
+  plot3DFormula: data.plot3DFormula,
+  graphNodes: data.graphNodes,
+  graphLinks: data.graphLinks,
+  graphDirected: data.graphDirected,
+  matrixRows: data.matrixRows,
+  geometryShape: data.geometryShape,
+  geometryParams: data.geometryParams,
+  vectorFieldFormulaX: data.vectorFieldFormulaX,
+  vectorFieldFormulaY: data.vectorFieldFormulaY,
+  unitCircleAngle: data.unitCircleAngle,
+  complexReal: data.complexReal,
+  complexImaginary: data.complexImaginary,
+  vennSets: data.vennSets,
+  vennIntersections: data.vennIntersections,
+  quiz: data.quiz,
+  stepByStep: data.stepByStep,
+});
+
 export const sendMessageToGemini = async (
   history: Message[],
   userMessage: string,
@@ -87,7 +132,7 @@ export const sendMessageToGemini = async (
 ): Promise<Message> => {
   try {
     if (!groqApiKey) {
-      throw new Error('Missing GROQ_API_KEY or API_KEY');
+      throw new Error('Missing GROQ_API_KEY');
     }
 
     const messages = [
@@ -129,12 +174,12 @@ export const sendMessageToGemini = async (
     }
 
     const payload = await response.json();
-    const responseText = payload?.choices?.[0]?.message?.content;
+    const responseText = extractContentText(payload?.choices?.[0]?.message?.content);
     if (!responseText) {
       throw new Error('No response from Groq');
     }
 
-    const data = parseJsonResponse(Array.isArray(responseText) ? responseText.map((part: any) => part?.text ?? '').join('') : String(responseText));
+    const data = normalizeResponse(parseJsonResponse(responseText));
     const visual = MathEngine.processResponse(data);
 
     return {
@@ -142,7 +187,7 @@ export const sendMessageToGemini = async (
       role: 'model',
       text: data.explanation,
       visual,
-      suggestedActions: data.suggestedActions || ['Explain more', 'Show an example'],
+      suggestedActions: data.suggestedActions.length > 0 ? data.suggestedActions : ['Explain more', 'Show an example'],
       timestamp: Date.now()
     };
   } catch (error: any) {
