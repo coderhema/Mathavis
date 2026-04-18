@@ -1,7 +1,7 @@
-<img width="200" height="1921" alt="Screenshot_20260412_014757_Chrome" src="https://github.com/user-attachments/assets/7d996a23-3fed-4066-8a2c-808f06021613" />
-<img width="184" height="1921" alt="Screenshot_20260412_013448_Chrome" src="https://github.com/user-attachments/assets/60b323fa-4b7f-44fa-b2c9-46882545cf59" />
-<img width="184" height="1921" alt="Screenshot_20260412_012803_Chrome" src="https://github.com/user-attachments/assets/cc7c6fe0-c18f-4c54-a06c-c4a82631c824" />
-<img width="184" height="1921" alt="Screenshot_20260412_012906_Chrome" src="https://github.com/user-attachments/assets/9c11d067-e1d7-4dfd-b7c6-da7aa6d16aca" />
+<img width="200" height="400" alt="Screenshot_20260412_014757_Chrome" src="https://github.com/user-attachments/assets/7d996a23-3fed-4066-8a2c-808f06021613" />
+<img width="184" height="400" alt="Screenshot_20260412_013448_Chrome" src="https://github.com/user-attachments/assets/60b323fa-4b7f-44fa-b2c9-46882545cf59" />
+<img width="184" height="400" alt="Screenshot_20260412_012803_Chrome" src="https://github.com/user-attachments/assets/cc7c6fe0-c18f-4c54-a06c-c4a82631c824" />
+<img width="184" height="400" alt="Screenshot_20260412_012906_Chrome" src="https://github.com/user-attachments/assets/9c11d067-e1d7-4dfd-b7c6-da7aa6d16aca" />
 
 # Mathavis
 
