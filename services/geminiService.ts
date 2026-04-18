@@ -2,7 +2,7 @@ import { Message, VisualType, MathResponseSchema } from '../types';
 import { MathEngine } from './MathEngine';
 
 const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
-const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
+const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'groq-compound';
 const visionModelId = env?.GROQ_VISION_MODEL || env?.VITE_GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
 const groqApiKey =
   env?.GROQ_API_KEY ||
@@ -15,34 +15,35 @@ const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 const validVisualTypes = new Set(Object.values(VisualType));
 
 const systemInstruction = `
-You are Professor Cluck, a brilliant, enthusiastic math tutor for college students.
-You explain Calculus, Linear Algebra, Discrete Math, Graph Theory, and related topics clearly and visually.
+You are Professor Cluck, a precise and enthusiastic math tutor.
+Use the full conversation context. When the user refers to "this", "that", "same", "again", or a prior diagram, keep the same topic, notation, ranges, labels, and visual settings unless the user explicitly changes them.
 
-Use the full conversation history as context. If the user says "this", "that", "same", "again", "more", or refers to an earlier visual, preserve the prior topic, notation, ranges, labels, and visualization settings unless the user explicitly changes them.
+Return JSON only. Always include explanation, visualType, and suggestedActions.
+Set visualType using exact uppercase values only.
 
-Visualization rules:
-1. PLOT: 2D functions. Use a valid JavaScript math expression in plotFormula with x, plus plotDomainMin and plotDomainMax when helpful.
-2. PLOT3D: Surfaces. Use plot3DFormula with x and y. If a 2D preview helps, keep the plot context aligned with the same function.
-3. GRAPH: Abstract structures, trees, networks. Use graphNodes, graphLinks, and graphDirected when direction matters.
-4. FLOWCHART: Algorithms and procedures. Use graphNodes with node types like start, step, decision, end, plus graphLinks.
-5. MATRIX: Linear algebra matrices. Use matrixRows.
-6. GEOMETRY3D: 3D shapes. Use geometryShape and geometryParams.
-7. STEPS: Step-by-step solutions. Each step must include a title, explanation, and visualType. Keep the steps aligned with the same problem.
-8. QUIZ: Multiple-choice practice. Include question, options, and explanation.
-9. VECTOR_FIELD: Use vectorFieldFormulaX and vectorFieldFormulaY.
-10. UNIT_CIRCLE: Use unitCircleAngle in degrees.
-11. COMPLEX_PLANE: Use complexReal and complexImaginary.
-12. VENN_DIAGRAM: Use vennSets and vennIntersections.
+Use these visualization rules:
+1. PLOT for single-variable functions. Provide plotFormula, and optionally plotDomainMin and plotDomainMax.
+2. PLOT3D for multivariable surfaces. Provide plot3DFormula plus plot3DXMin, plot3DXMax, plot3DYMin, and plot3DYMax when relevant.
+3. GRAPH for network graphs, dependency graphs, knowledge graphs, and relationship maps. Use graphMode: "network". Provide graphNodes, graphLinks, and graphDirected when direction matters.
+4. FLOWCHART for algorithms and procedures. Use graphMode: "flowchart". Use graphNodes with node types start, step, decision, end, plus graphLinks.
+5. MATRIX for linear algebra matrices and transformations. Provide matrixRows as a rectangular array.
+6. GEOMETRY3D for solid shapes.
+7. STEPS for step-by-step solutions. Each step must have a title, explanation, and visualType.
+8. QUIZ for multiple choice questions.
+9. VECTOR_FIELD for vector fields.
+10. UNIT_CIRCLE for trig visuals.
+11. COMPLEX_PLANE for complex numbers.
+12. VENN_DIAGRAM for set relationships.
+13. BENTO for concise summary dashboards, feature comparisons, grouped takeaways, and compact overviews. Provide bentoTitle and bentoItems.
+14. TREE for hierarchies, recursion, org charts, folder trees, and dependency trees. Provide treeTitle, treeRootId, and treeNodes.
+15. PARTICLE for clusters, swarms, statistical clouds, networks with motion, or abstract systems. Provide particleTitle, particleNodes, and optional particleLinks.
 
-When the user asks to show, draw, plot, visualize, or solve step by step, you must choose the matching visual type and provide the settings needed for the frontend to render it.
+For graph/network visuals, do not mix in flowchart node types.
+For flowcharts, do not use network-style nodes without graphMode: "flowchart".
+For 3D visuals, make sure the formula and ranges are internally consistent.
+For matrices, output a clean rectangular matrix with numbers only.
 
-Response contract:
-- Return valid JSON only.
-- Always include explanation, visualType, and suggestedActions.
-- Use uppercase visualType values exactly matching the schema.
-- Populate only the fields relevant to the chosen visual.
-- If you are using steps, make sure the top-level response includes stepByStep and each step carries the appropriate visualType.
-- Be concise in explanation unless the user asks for more detail.
+If the user asks to show, draw, plot, visualize, or compare multiple ideas, choose the most appropriate visualization type and provide the exact fields needed by the frontend.
 `;
 
 const isRateLimitLike = (error: any, status?: number) => {
@@ -66,10 +67,7 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const buildContentParts = (text: string, image?: string) => {
   const parts: any[] = [{ type: 'text', text }];
   if (image) {
-    parts.push({
-      type: 'image_url',
-      image_url: { url: image }
-    });
+    parts.push({ type: 'image_url', image_url: { url: image } });
   }
   return parts;
 };
@@ -112,21 +110,25 @@ const normalizeVisualType = (value: unknown): VisualType => {
 };
 
 const inferVisualType = (data: Partial<MathResponseSchema>): VisualType => {
+  if (data.graphMode === 'flowchart') return VisualType.FLOWCHART;
+  if (data.graphMode === 'tree') return VisualType.TREE;
+  if (data.graphMode === 'network') return VisualType.GRAPH;
+
   const explicit = normalizeVisualType(data.visualType);
   if (explicit !== VisualType.NONE) return explicit;
 
   if (data.stepByStep?.steps?.length) return VisualType.STEPS;
   if (data.quiz) return VisualType.QUIZ;
+  if (data.bentoItems?.length) return VisualType.BENTO;
+  if (data.treeNodes?.length) return VisualType.TREE;
+  if (data.particleNodes?.length) return VisualType.PARTICLE;
   if (data.vennSets?.length) return VisualType.VENN_DIAGRAM;
   if (data.complexReal !== undefined && data.complexImaginary !== undefined) return VisualType.COMPLEX_PLANE;
   if (data.unitCircleAngle !== undefined) return VisualType.UNIT_CIRCLE;
   if (data.vectorFieldFormulaX && data.vectorFieldFormulaY) return VisualType.VECTOR_FIELD;
   if (data.geometryShape) return VisualType.GEOMETRY3D;
   if (data.matrixRows?.length) return VisualType.MATRIX;
-  if (data.graphNodes?.length) {
-    const hasFlowchartNodes = data.graphNodes.some(node => typeof (node as any).type === 'string');
-    return hasFlowchartNodes ? VisualType.FLOWCHART : VisualType.GRAPH;
-  }
+  if (data.graphNodes?.length) return VisualType.GRAPH;
   if (data.plot3DFormula) return VisualType.PLOT3D;
   if (data.plotFormula) return VisualType.PLOT;
 
@@ -142,10 +144,15 @@ const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchem
       : 'I could not generate a valid response.',
     visualType,
     suggestedActions: asStringArray(data.suggestedActions, ['Explain more', 'Show an example']),
+    graphMode: data.graphMode,
     plotFormula: typeof data.plotFormula === 'string' ? data.plotFormula : undefined,
     plotDomainMin: typeof data.plotDomainMin === 'number' ? data.plotDomainMin : undefined,
     plotDomainMax: typeof data.plotDomainMax === 'number' ? data.plotDomainMax : undefined,
     plot3DFormula: typeof data.plot3DFormula === 'string' ? data.plot3DFormula : undefined,
+    plot3DXMin: typeof data.plot3DXMin === 'number' ? data.plot3DXMin : undefined,
+    plot3DXMax: typeof data.plot3DXMax === 'number' ? data.plot3DXMax : undefined,
+    plot3DYMin: typeof data.plot3DYMin === 'number' ? data.plot3DYMin : undefined,
+    plot3DYMax: typeof data.plot3DYMax === 'number' ? data.plot3DYMax : undefined,
     graphNodes: Array.isArray(data.graphNodes) ? data.graphNodes : undefined,
     graphLinks: Array.isArray(data.graphLinks) ? data.graphLinks : undefined,
     graphDirected: typeof data.graphDirected === 'boolean' ? data.graphDirected : undefined,
@@ -169,10 +176,15 @@ const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchem
               title: step.title,
               explanation: step.explanation,
               visualType: typeof step.visualType === 'string' ? step.visualType : 'NONE',
+              graphMode: step.graphMode,
               plotFormula: typeof step.plotFormula === 'string' ? step.plotFormula : undefined,
               plotDomainMin: typeof step.plotDomainMin === 'number' ? step.plotDomainMin : undefined,
               plotDomainMax: typeof step.plotDomainMax === 'number' ? step.plotDomainMax : undefined,
               plot3DFormula: typeof step.plot3DFormula === 'string' ? step.plot3DFormula : undefined,
+              plot3DXMin: typeof step.plot3DXMin === 'number' ? step.plot3DXMin : undefined,
+              plot3DXMax: typeof step.plot3DXMax === 'number' ? step.plot3DXMax : undefined,
+              plot3DYMin: typeof step.plot3DYMin === 'number' ? step.plot3DYMin : undefined,
+              plot3DYMax: typeof step.plot3DYMax === 'number' ? step.plot3DYMax : undefined,
               graphNodes: Array.isArray(step.graphNodes) ? step.graphNodes : undefined,
               graphLinks: Array.isArray(step.graphLinks) ? step.graphLinks : undefined,
               graphDirected: typeof step.graphDirected === 'boolean' ? step.graphDirected : undefined,
@@ -187,9 +199,31 @@ const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchem
               vennSets: Array.isArray(step.vennSets) ? step.vennSets : undefined,
               vennIntersections: Array.isArray(step.vennIntersections) ? step.vennIntersections : undefined,
               quiz: step.quiz && typeof step.quiz.question === 'string' ? step.quiz : undefined,
+              bentoTitle: typeof step.bentoTitle === 'string' ? step.bentoTitle : undefined,
+              bentoSubtitle: typeof step.bentoSubtitle === 'string' ? step.bentoSubtitle : undefined,
+              bentoItems: Array.isArray(step.bentoItems) ? step.bentoItems : undefined,
+              treeTitle: typeof step.treeTitle === 'string' ? step.treeTitle : undefined,
+              treeSubtitle: typeof step.treeSubtitle === 'string' ? step.treeSubtitle : undefined,
+              treeRootId: typeof step.treeRootId === 'string' ? step.treeRootId : undefined,
+              treeNodes: Array.isArray(step.treeNodes) ? step.treeNodes : undefined,
+              particleTitle: typeof step.particleTitle === 'string' ? step.particleTitle : undefined,
+              particleSubtitle: typeof step.particleSubtitle === 'string' ? step.particleSubtitle : undefined,
+              particleNodes: Array.isArray(step.particleNodes) ? step.particleNodes : undefined,
+              particleLinks: Array.isArray(step.particleLinks) ? step.particleLinks : undefined,
             }))
         }
       : undefined,
+    bentoTitle: typeof data.bentoTitle === 'string' ? data.bentoTitle : undefined,
+    bentoSubtitle: typeof data.bentoSubtitle === 'string' ? data.bentoSubtitle : undefined,
+    bentoItems: Array.isArray(data.bentoItems) ? data.bentoItems : undefined,
+    treeTitle: typeof data.treeTitle === 'string' ? data.treeTitle : undefined,
+    treeSubtitle: typeof data.treeSubtitle === 'string' ? data.treeSubtitle : undefined,
+    treeRootId: typeof data.treeRootId === 'string' ? data.treeRootId : undefined,
+    treeNodes: Array.isArray(data.treeNodes) ? data.treeNodes : undefined,
+    particleTitle: typeof data.particleTitle === 'string' ? data.particleTitle : undefined,
+    particleSubtitle: typeof data.particleSubtitle === 'string' ? data.particleSubtitle : undefined,
+    particleNodes: Array.isArray(data.particleNodes) ? data.particleNodes : undefined,
+    particleLinks: Array.isArray(data.particleLinks) ? data.particleLinks : undefined,
   };
 };
 

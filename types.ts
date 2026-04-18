@@ -1,18 +1,20 @@
-
 export enum VisualType {
   NONE = 'NONE',
-  PLOT = 'PLOT',       // 2D functions like y = x^2
-  PLOT3D = 'PLOT3D',   // 3D surfaces like z = x^2 + y^2
-  GRAPH = 'GRAPH',     // Nodes and edges (trees, graph theory)
-  FLOWCHART = 'FLOWCHART', // Algorithms or logical flows
-  MATRIX = 'MATRIX',    // Matrix operations visual
-  GEOMETRY3D = 'GEOMETRY3D', // 3D shapes like spheres, cones
-  STEPS = 'STEPS',       // Step-by-step problem solver
-  QUIZ = 'QUIZ',         // Multiple choice questions
-  VECTOR_FIELD = 'VECTOR_FIELD', // 2D Vector fields (Calculus)
-  UNIT_CIRCLE = 'UNIT_CIRCLE',    // Trigonometry unit circle
-  COMPLEX_PLANE = 'COMPLEX_PLANE', // Complex numbers
-  VENN_DIAGRAM = 'VENN_DIAGRAM'   // Set theory
+  PLOT = 'PLOT',
+  PLOT3D = 'PLOT3D',
+  GRAPH = 'GRAPH',
+  FLOWCHART = 'FLOWCHART',
+  MATRIX = 'MATRIX',
+  GEOMETRY3D = 'GEOMETRY3D',
+  STEPS = 'STEPS',
+  QUIZ = 'QUIZ',
+  VECTOR_FIELD = 'VECTOR_FIELD',
+  UNIT_CIRCLE = 'UNIT_CIRCLE',
+  COMPLEX_PLANE = 'COMPLEX_PLANE',
+  VENN_DIAGRAM = 'VENN_DIAGRAM',
+  BENTO = 'BENTO',
+  TREE = 'TREE',
+  PARTICLE = 'PARTICLE'
 }
 
 export interface QuizOption {
@@ -44,6 +46,7 @@ export interface GraphNode {
   id: string;
   label?: string;
   group?: number;
+  type?: 'start' | 'step' | 'decision' | 'end';
 }
 
 export interface GraphLink {
@@ -62,7 +65,7 @@ export interface GraphData {
 export interface PlotPoint {
   x: number;
   y: number;
-  [key: string]: any; // Allow extra properties for multiple lines
+  [key: string]: any;
 }
 
 export interface PlotData {
@@ -74,7 +77,7 @@ export interface PlotData {
 }
 
 export interface Plot3DData {
-  formula: string; // z in terms of x and y
+  formula: string;
   xRange: [number, number];
   yRange: [number, number];
   label: string;
@@ -97,15 +100,15 @@ export interface MatrixData {
 }
 
 export interface VectorFieldData {
-  formulaX: string; // P(x, y)
-  formulaY: string; // Q(x, y)
+  formulaX: string;
+  formulaY: string;
   domain: [number, number];
   range: [number, number];
   density?: number;
 }
 
 export interface UnitCircleData {
-  angle: number; // in degrees
+  angle: number;
   showSine?: boolean;
   showCosine?: boolean;
   showTangent?: boolean;
@@ -120,6 +123,56 @@ export interface ComplexPlaneData {
 export interface VennDiagramData {
   sets: { label: string; size: number }[];
   intersections: { sets: number[]; size: number }[];
+}
+
+export interface BentoItem {
+  title: string;
+  description?: string;
+  accent?: string;
+  metric?: string;
+}
+
+export interface BentoData {
+  title: string;
+  subtitle?: string;
+  items: BentoItem[];
+}
+
+export interface TreeNode {
+  id: string;
+  label: string;
+  parentId?: string;
+  note?: string;
+  group?: number;
+}
+
+export interface TreeData {
+  title: string;
+  subtitle?: string;
+  rootId?: string;
+  nodes: TreeNode[];
+}
+
+export interface ParticleNode {
+  id: string;
+  label?: string;
+  x?: number;
+  y?: number;
+  weight?: number;
+  group?: number;
+}
+
+export interface ParticleLink {
+  source: string;
+  target: string;
+  strength?: number;
+}
+
+export interface ParticleData {
+  title: string;
+  subtitle?: string;
+  particles: ParticleNode[];
+  links?: ParticleLink[];
 }
 
 export interface MathStep {
@@ -147,15 +200,18 @@ export interface VisualContent {
   vennDiagramData?: VennDiagramData;
   stepByStepData?: StepByStepData;
   quizData?: QuizData;
+  bentoData?: BentoData;
+  treeData?: TreeData;
+  particleData?: ParticleData;
 }
 
 export interface Message {
   id: string;
   role: 'user' | 'model';
   text: string;
-  image?: string; // Base64 data URL
+  image?: string;
   visual?: VisualContent;
-  suggestedActions?: string[]; 
+  suggestedActions?: string[];
   timestamp: number;
 }
 
@@ -172,59 +228,57 @@ export interface Topic {
   description: string;
   color: string;
   icon: string;
-  completed: number; // 0 to 100
+  completed: number;
 }
 
 export interface MathResponseSchema {
   explanation: string;
-  visualType: string; // "PLOT" | "PLOT3D" | "GRAPH" | "FLOWCHART" | "MATRIX" | "NONE"
+  visualType: string;
   suggestedActions: string[];
-  // For Plot
+  graphMode?: 'network' | 'flowchart' | 'tree';
   plotFormula?: string;
   plotDomainMin?: number;
   plotDomainMax?: number;
-  // For Plot3D
-  plot3DFormula?: string; // e.g. "Math.pow(x, 2) + Math.pow(y, 2)"
-  // For Graph/Flowchart
-  graphNodes?: { id: string; label: string; group?: number; type?: string }[];
-  graphLinks?: { source: string; target: string; label?: string }[];
+  plot3DFormula?: string;
+  plot3DXMin?: number;
+  plot3DXMax?: number;
+  plot3DYMin?: number;
+  plot3DYMax?: number;
+  graphNodes?: { id: string; label: string; group?: number; type?: string; parentId?: string; note?: string }[];
+  graphLinks?: { source: string; target: string; label?: string; value?: number }[];
   graphDirected?: boolean;
-  // For Matrix
   matrixRows?: number[][];
-  // For Geometry3D
   geometryShape?: string;
   geometryParams?: any;
-  // For Vector Field
   vectorFieldFormulaX?: string;
   vectorFieldFormulaY?: string;
-  // For Unit Circle
   unitCircleAngle?: number;
-  // For Complex Plane
   complexReal?: number;
   complexImaginary?: number;
-  // For Venn Diagram
   vennSets?: { label: string; size: number }[];
   vennIntersections?: { sets: number[]; size: number }[];
-  // For Quiz
   quiz?: {
     question: string;
     options: { id: string; text: string; isCorrect: boolean }[];
     explanation: string;
   };
-  // For Step-by-Step
   stepByStep?: {
     problem: string;
     steps: {
       title: string;
       explanation: string;
       visualType: string;
-      // ... same fields as MathResponseSchema for each step
+      graphMode?: 'network' | 'flowchart' | 'tree';
       plotFormula?: string;
       plotDomainMin?: number;
       plotDomainMax?: number;
       plot3DFormula?: string;
-      graphNodes?: { id: string; label: string; group?: number; type?: string }[];
-      graphLinks?: { source: string; target: string; label?: string }[];
+      plot3DXMin?: number;
+      plot3DXMax?: number;
+      plot3DYMin?: number;
+      plot3DYMax?: number;
+      graphNodes?: { id: string; label: string; group?: number; type?: string; parentId?: string; note?: string }[];
+      graphLinks?: { source: string; target: string; label?: string; value?: number }[];
       graphDirected?: boolean;
       matrixRows?: number[][];
       geometryShape?: string;
@@ -241,8 +295,30 @@ export interface MathResponseSchema {
         options: { id: string; text: string; isCorrect: boolean }[];
         explanation: string;
       };
+      bentoTitle?: string;
+      bentoSubtitle?: string;
+      bentoItems?: BentoItem[];
+      treeTitle?: string;
+      treeSubtitle?: string;
+      treeRootId?: string;
+      treeNodes?: TreeNode[];
+      particleTitle?: string;
+      particleSubtitle?: string;
+      particleNodes?: ParticleNode[];
+      particleLinks?: ParticleLink[];
     }[];
   };
+  bentoTitle?: string;
+  bentoSubtitle?: string;
+  bentoItems?: BentoItem[];
+  treeTitle?: string;
+  treeSubtitle?: string;
+  treeRootId?: string;
+  treeNodes?: TreeNode[];
+  particleTitle?: string;
+  particleSubtitle?: string;
+  particleNodes?: ParticleNode[];
+  particleLinks?: ParticleLink[];
 }
 
 export type View = 'auth' | 'path' | 'practice' | 'library' | 'leaderboard' | 'shop';

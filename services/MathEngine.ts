@@ -1,15 +1,23 @@
-
 import * as math from 'mathjs';
-import { VisualType, VisualContent, MathResponseSchema, PlotPoint } from '../types';
+import {
+  VisualType,
+  VisualContent,
+  MathResponseSchema,
+  PlotPoint,
+  TreeData,
+  BentoData,
+  ParticleData,
+  TreeNode,
+  BentoItem,
+  ParticleNode,
+  ParticleLink,
+} from '../types';
 
 /**
  * MathEngine handles local computation for visualizations.
- * It translates AI-generated formulas and structures into concrete data points.
+ * It translates AI-generated formulas and structures into concrete data.
  */
 export class MathEngine {
-  /**
-   * Processes the raw AI response schema into a rich VisualContent object.
-   */
   static processResponse(schema: MathResponseSchema): VisualContent {
     const type = schema.visualType as VisualType;
     const content: VisualContent = { type };
@@ -30,8 +38,8 @@ export class MathEngine {
           if (schema.plot3DFormula) {
             content.plot3DData = {
               formula: schema.plot3DFormula,
-              xRange: [-5, 5],
-              yRange: [-5, 5],
+              xRange: [schema.plot3DXMin ?? -5, schema.plot3DXMax ?? 5],
+              yRange: [schema.plot3DYMin ?? -5, schema.plot3DYMax ?? 5],
               label: schema.plot3DFormula
             };
           }
@@ -67,12 +75,12 @@ export class MathEngine {
         case VisualType.MATRIX:
           if (schema.matrixRows) {
             content.matrixData = {
-              matrix: schema.matrixRows,
-              label: "Matrix Result"
+              matrix: this.normalizeMatrix(schema.matrixRows),
+              label: 'Matrix Result'
             };
           }
           break;
-          
+
         case VisualType.GEOMETRY3D:
           if (schema.geometryShape) {
             content.geometry3DData = {
@@ -124,6 +132,39 @@ export class MathEngine {
           }
           break;
 
+        case VisualType.BENTO:
+          if (schema.bentoItems) {
+            content.bentoData = {
+              title: schema.bentoTitle || 'Bento Board',
+              subtitle: schema.bentoSubtitle,
+              items: this.normalizeBentoItems(schema.bentoItems)
+            };
+          }
+          break;
+
+        case VisualType.TREE:
+          if (schema.treeNodes || schema.graphNodes) {
+            const nodes = schema.treeNodes || (schema.graphNodes as any[]);
+            content.treeData = {
+              title: schema.treeTitle || 'Tree View',
+              subtitle: schema.treeSubtitle,
+              rootId: schema.treeRootId,
+              nodes: this.normalizeTreeNodes(nodes)
+            };
+          }
+          break;
+
+        case VisualType.PARTICLE:
+          if (schema.particleNodes) {
+            content.particleData = {
+              title: schema.particleTitle || 'Particle Field',
+              subtitle: schema.particleSubtitle,
+              particles: this.normalizeParticleNodes(schema.particleNodes),
+              links: this.normalizeParticleLinks(schema.particleLinks || [])
+            };
+          }
+          break;
+
         case VisualType.QUIZ:
           if (schema.quiz) {
             content.quizData = {
@@ -148,21 +189,79 @@ export class MathEngine {
           break;
       }
     } catch (error) {
-      console.error("MathEngine processing error:", error);
+      console.error('MathEngine processing error:', error);
       content.type = VisualType.NONE;
     }
 
     return content;
   }
 
+  private static normalizeMatrix(matrix: number[][]): number[][] {
+    const maxCols = Math.max(...matrix.map(row => row.length), 0);
+    return matrix.map(row => {
+      const normalized = [...row];
+      while (normalized.length < maxCols) normalized.push(0);
+      return normalized;
+    });
+  }
+
+  private static normalizeBentoItems(items: BentoItem[]): BentoItem[] {
+    return items
+      .filter(item => !!item?.title)
+      .slice(0, 12)
+      .map(item => ({
+        title: item.title,
+        description: item.description,
+        accent: item.accent,
+        metric: item.metric,
+      }));
+  }
+
+  private static normalizeTreeNodes(nodes: (TreeNode | any)[]): TreeNode[] {
+    return nodes
+      .filter(node => !!node?.id && !!node?.label)
+      .map(node => ({
+        id: String(node.id),
+        label: String(node.label),
+        parentId: node.parentId ? String(node.parentId) : undefined,
+        note: node.note ? String(node.note) : undefined,
+        group: typeof node.group === 'number' ? node.group : undefined,
+      }));
+  }
+
+  private static normalizeParticleNodes(nodes: (ParticleNode | any)[]): ParticleNode[] {
+    return nodes
+      .filter(node => !!node?.id)
+      .slice(0, 120)
+      .map(node => ({
+        id: String(node.id),
+        label: node.label ? String(node.label) : undefined,
+        x: typeof node.x === 'number' ? node.x : undefined,
+        y: typeof node.y === 'number' ? node.y : undefined,
+        weight: typeof node.weight === 'number' ? node.weight : undefined,
+        group: typeof node.group === 'number' ? node.group : undefined,
+      }));
+  }
+
+  private static normalizeParticleLinks(links: (ParticleLink | any)[]): ParticleLink[] {
+    return links
+      .filter(link => !!link?.source && !!link?.target)
+      .slice(0, 200)
+      .map(link => ({
+        source: String(link.source),
+        target: String(link.target),
+        strength: typeof link.strength === 'number' ? link.strength : undefined,
+      }));
+  }
+
   private static generatePlotPoints(formula: string, min: number, max: number): PlotPoint[] {
     const points: PlotPoint[] = [];
     const step = (max - min) / 100;
-    
+
     try {
       const node = math.parse(formula);
       const code = node.compile();
-      
+
       for (let x = min; x <= max; x += step) {
         const scope = { x, Math };
         const y = code.evaluate(scope);
@@ -171,9 +270,9 @@ export class MathEngine {
         }
       }
     } catch (e) {
-      console.error("Formula evaluation error:", e);
+      console.error('Formula evaluation error:', e);
     }
-    
+
     return points;
   }
 }

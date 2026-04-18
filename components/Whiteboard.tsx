@@ -17,6 +17,9 @@ import VectorFieldVis from './visualizations/VectorFieldVis';
 import UnitCircleVis from './visualizations/UnitCircleVis';
 import ComplexPlaneVis from './visualizations/ComplexPlaneVis';
 import VennDiagramVis from './visualizations/VennDiagramVis';
+import BentoVis from './visualizations/BentoVis';
+import TreeVis from './visualizations/TreeVis';
+import ParticleVis from './visualizations/ParticleVis';
 import MathKeyboard from './MathKeyboard';
 import VoxelChicken from './VoxelChicken';
 
@@ -634,6 +637,9 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                     {msg.visual.type === VisualType.UNIT_CIRCLE && msg.visual.unitCircleData && <UnitCircleVis data={msg.visual.unitCircleData} />}
                                     {msg.visual.type === VisualType.COMPLEX_PLANE && msg.visual.complexPlaneData && <ComplexPlaneVis data={msg.visual.complexPlaneData} />}
                                     {msg.visual.type === VisualType.VENN_DIAGRAM && msg.visual.vennDiagramData && <VennDiagramVis data={msg.visual.vennDiagramData} />}
+                                    {msg.visual.type === VisualType.BENTO && msg.visual.bentoData && <BentoVis data={msg.visual.bentoData} />}
+                                    {msg.visual.type === VisualType.TREE && msg.visual.treeData && <TreeVis data={msg.visual.treeData} />}
+                                    {msg.visual.type === VisualType.PARTICLE && msg.visual.particleData && <ParticleVis data={msg.visual.particleData} />}
                                     {msg.visual.type === VisualType.QUIZ && msg.visual.quizData && <QuizVis data={msg.visual.quizData} />}
                                     {msg.visual.type === VisualType.STEPS && msg.visual.stepByStepData && <StepByStepVis data={msg.visual.stepByStepData} />}
                                 </div>
@@ -804,6 +810,9 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         {expandedArtifact.visual?.type === VisualType.UNIT_CIRCLE && expandedArtifact.visual.unitCircleData && <UnitCircleVis data={expandedArtifact.visual.unitCircleData} />}
                         {expandedArtifact.visual?.type === VisualType.COMPLEX_PLANE && expandedArtifact.visual.complexPlaneData && <ComplexPlaneVis data={expandedArtifact.visual.complexPlaneData} />}
                         {expandedArtifact.visual?.type === VisualType.VENN_DIAGRAM && expandedArtifact.visual.vennDiagramData && <VennDiagramVis data={expandedArtifact.visual.vennDiagramData} />}
+                        {expandedArtifact.visual?.type === VisualType.BENTO && expandedArtifact.visual.bentoData && <BentoVis data={expandedArtifact.visual.bentoData} />}
+                        {expandedArtifact.visual?.type === VisualType.TREE && expandedArtifact.visual.treeData && <TreeVis data={expandedArtifact.visual.treeData} />}
+                        {expandedArtifact.visual?.type === VisualType.PARTICLE && expandedArtifact.visual.particleData && <ParticleVis data={expandedArtifact.visual.particleData} />}
                         {expandedArtifact.visual?.type === VisualType.QUIZ && expandedArtifact.visual.quizData && <QuizVis data={expandedArtifact.visual.quizData} />}
                         {expandedArtifact.visual?.type === VisualType.STEPS && expandedArtifact.visual.stepByStepData && <StepByStepVis data={expandedArtifact.visual.stepByStepData} />}
                     </div>

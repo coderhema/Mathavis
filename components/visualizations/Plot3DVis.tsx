@@ -119,19 +119,25 @@ const Plot3DVis: React.FC<Plot3DVisProps> = ({ data, isStatic = false }) => {
       const xMax = xRange[1];
       const yMin = yRange[0];
       const yMax = yRange[1];
-      
-      geometry = new THREE.PlaneGeometry(xMax - xMin, yMax - yMin, segments, segments);
-      const vertices = geometry.attributes.position.array;
+      const surfaceWidth = xMax - xMin;
+      const surfaceHeight = yMax - yMin;
+      const safeWidth = surfaceWidth || 1;
+      const safeHeight = surfaceHeight || 1;
+
+      geometry = new THREE.PlaneGeometry(surfaceWidth, surfaceHeight, segments, segments);
+      const vertices = geometry.attributes.position.array as Float32Array;
 
       for (let i = 0; i < vertices.length; i += 3) {
-        const x = vertices[i];
-        const y = vertices[i + 1];
-        
-        // Map plane coordinates to formula coordinates
+        const localX = vertices[i];
+        const localY = vertices[i + 1];
+
+        const x = xMin + ((localX + safeWidth / 2) / safeWidth) * (xMax - xMin);
+        const y = yMin + ((localY + safeHeight / 2) / safeHeight) * (yMax - yMin);
+
         const scope = { x, y, Math };
         try {
           const z = code.evaluate(scope);
-          vertices[i + 2] = isFinite(z) ? z : 0;
+          vertices[i + 2] = Number.isFinite(z) ? z : 0;
         } catch (e) {
           vertices[i + 2] = 0;
         }
@@ -150,10 +156,9 @@ const Plot3DVis: React.FC<Plot3DVisProps> = ({ data, isStatic = false }) => {
       });
 
       const mesh = new THREE.Mesh(geometry, material);
-      mesh.rotation.x = -Math.PI / 2; // Lie flat on XZ plane
+      mesh.rotation.x = -Math.PI / 2;
       scene.add(mesh);
 
-      // Wireframe overlay
       const wireframe = new THREE.WireframeGeometry(geometry);
       const line = new THREE.LineSegments(wireframe);
       line.material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
