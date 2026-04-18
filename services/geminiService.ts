@@ -4,8 +4,9 @@ import { MathEngine } from './MathEngine';
 const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
 const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile';
 const visionModelId = env?.GROQ_VISION_MODEL || env?.VITE_GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
+const primaryGroqApiKey = env?.GROQ_API_KEY;
 const groqApiKey =
-  env?.GROQ_API_KEY ||
+  primaryGroqApiKey ||
   env?.GROQAPI_KEY ||
   env?.VITE_GROQ_API_KEY ||
   env?.API_KEY ||
