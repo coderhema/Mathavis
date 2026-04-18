@@ -12,7 +12,7 @@ const groqApiKey =
   env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
-const groqDefaultMaxTokens = 4096;
+const groqDefaultMaxTokens = isFreePlanMode ? 4096 : 8192;
 const groqMaxTokens = (() => {
   const raw = env?.GROQ_MAX_TOKENS || env?.VITE_GROQ_MAX_TOKENS;
   const parsed = raw ? Number(raw) : groqDefaultMaxTokens;
@@ -30,10 +30,13 @@ Use the entire conversation context. If the user refers to "this", "that", "same
 Output contract:
 - Return one complete valid JSON object only. No markdown, no code fences, no commentary, no trailing text.
 - The response must begin with { and end with }.
-- Always include explanation, visualType, and suggestedActions.
-- Use exact uppercase visualType values from the schema.
+- The first two keys must be visualType and idea, in that order, at the very beginning of the JSON object.
+- visualType must use the exact uppercase values from the schema.
+- idea must be a brief 3-8 word summary of the response so the UI can react immediately.
+- Always include explanation and suggestedActions.
 - Include only the fields relevant to the chosen visual.
 - Make the JSON complete enough for the frontend to render it without guessing.
+- For llama-3.3-70b-versatile, follow this key order strictly and do not place any other keys before visualType and idea.
 - If you are at risk of exceeding the token budget, prioritize finishing a valid JSON object over adding extra explanation.
 
 Visualization rules:
