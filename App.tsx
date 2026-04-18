@@ -206,9 +206,6 @@ const App: React.FC = () => {
                 {currentView === 'path' ? 'Learning Path' : (selectedTopic && currentView === 'practice' ? selectedTopic.name : currentView)}
             </span>
             <div className="flex items-center gap-4">
-              <button onClick={() => { soundService.playBoop(); handleOpenHistory(); }} className="text-slate-500 dark:text-slate-400">
-                <History size={20} />
-              </button>
               <button onClick={toggleDarkMode} className="text-slate-500 dark:text-slate-400">
                 {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
               </button>
@@ -219,7 +216,6 @@ const App: React.FC = () => {
           <TopicPath 
             topics={topics}
             onSelectTopic={handleTopicSelect} 
-            onOpenHistory={handleOpenHistory}
             onNewModuleClick={handleOpenTopicPrompt}
           />
         )}

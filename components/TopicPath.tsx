@@ -1,5 +1,5 @@
 import React from 'react';
-import { Divide, Sigma, Network, Grid, Lock, Trophy, Star, Plus, History, Sparkles } from 'lucide-react';
+import { Divide, Sigma, Network, Grid, Lock, Trophy, Star, Plus, Sparkles } from 'lucide-react';
 import { Topic } from '../types';
 import { soundService } from '../services/soundService';
 import { motion } from 'motion/react';
@@ -7,11 +7,10 @@ import { motion } from 'motion/react';
 interface TopicPathProps {
   topics: Topic[];
   onSelectTopic: (topic: Topic) => void;
-  onOpenHistory: () => void;
   onNewModuleClick: () => void;
 }
 
-const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onOpenHistory, onNewModuleClick }) => {
+const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModuleClick }) => {
   const handleTopicClick = (topic: Topic) => {
     soundService.playBoop();
     onSelectTopic(topic);
@@ -30,16 +29,6 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onOpenHist
             <div className="absolute top-[40%] right-[10%] w-48 h-48 bg-brand-blue rounded-full blur-3xl" />
             <div className="absolute bottom-[20%] left-[15%] w-40 h-40 bg-brand-purple rounded-full blur-3xl" />
         </div>
-
-        {/* History Button */}
-        <button 
-          onClick={() => { soundService.playBoop(); onOpenHistory(); }}
-          className="fixed top-6 right-6 p-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 hover:text-brand-blue transition-all shadow-sm z-50 hidden md:block"
-          title="View History"
-        >
-          <History size={24} />
-        </button>
-
         <div className="max-w-2xl mx-auto pt-16 pb-48 flex flex-col items-center relative">
             
             {/* Unit Header Card */}
