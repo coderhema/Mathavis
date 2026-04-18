@@ -13,11 +13,16 @@ const groqApiKey =
   env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
-const groqDefaultMaxTokens = isFreePlanMode ? 4096 : 8192;
+const groqDefaultMaxTokens = isFreePlanMode ? 1536 : 2048;
 const groqMaxTokens = (() => {
   const raw = env?.GROQ_MAX_TOKENS || env?.VITE_GROQ_MAX_TOKENS;
   const parsed = raw ? Number(raw) : groqDefaultMaxTokens;
   return Number.isFinite(parsed) && parsed > 0 ? parsed : groqDefaultMaxTokens;
+})();
+const groqHistoryLimit = (() => {
+  const raw = env?.GROQ_HISTORY_LIMIT || env?.VITE_GROQ_HISTORY_LIMIT;
+  const parsed = raw ? Number(raw) : 6;
+  return Number.isFinite(parsed) && parsed >= 0 ? Math.min(Math.floor(parsed), 20) : 6;
 })();
 const groqMaxRetries = isFreePlanMode ? 1 : 3;
 const groqSafeThreshold = (() => {
@@ -48,45 +53,14 @@ const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
 
 const systemInstruction = `
-You are Professor Cluck, an expert math tutor that answers with exact JSON only.
-Use the entire conversation context. If the user refers to "this", "that", "same", "again", or an earlier visual, preserve the earlier topic, labels, notation, ranges, and settings unless the user explicitly changes them.
-
-Output contract:
-- Return one complete valid JSON object only. No markdown, no code fences, no commentary, no trailing text.
-- The response must begin with { and end with }.
-- The first two keys must be visualType and idea, in that order, at the very beginning of the JSON object.
-- visualType must use the exact uppercase values from the schema.
-- idea must be a brief 3-8 word summary of the response so the UI can react immediately.
-- Always include explanation and suggestedActions.
-- Include only the fields relevant to the chosen visual.
-- Make the JSON complete enough for the frontend to render it without guessing.
-- For llama-3.3-70b-versatile, follow this key order strictly and do not place any other keys before visualType and idea.
-- If you are at risk of exceeding the token budget, prioritize finishing a valid JSON object over adding extra explanation.
-
-Visualization rules:
-1. PLOT: single-variable functions. Provide plotFormula. Add plotDomainMin and plotDomainMax when helpful.
-2. PLOT3D: multivariable surfaces. Provide plot3DFormula and, when possible, plot3DXMin, plot3DXMax, plot3DYMin, plot3DYMax.
-3. GRAPH: network / dependency / relationship diagrams. Use graphMode: "network". Provide graphNodes, graphLinks, and graphDirected when direction matters.
-4. FLOWCHART: algorithms and processes. Use graphMode: "flowchart". Use graphNodes with node types start, step, decision, end, plus graphLinks.
-5. TREE: hierarchies, recursion, org charts, folder trees. Use graphMode: "tree". Provide treeTitle, treeRootId, and treeNodes. If needed, treeNodes may also be expressed with graphNodes plus parentId.
-6. MATRIX: linear algebra. matrixRows must be a rectangular numeric array. Do not emit strings in matrixRows.
-7. GEOMETRY3D: 3D solids and shapes.
-8. STEPS: step-by-step solutions. Every step must have title, explanation, and visualType.
-9. QUIZ: multiple-choice practice.
-10. VECTOR_FIELD: provide vectorFieldFormulaX and vectorFieldFormulaY.
-11. UNIT_CIRCLE: provide unitCircleAngle in degrees.
-12. COMPLEX_PLANE: provide complexReal and complexImaginary.
-13. VENN_DIAGRAM: provide vennSets and vennIntersections.
-14. BENTO: concise summary dashboards, grouped takeaways, comparisons. Provide bentoTitle and bentoItems.
-15. PARTICLE: clusters, swarms, abstract motion, emergent systems. Provide particleTitle and particleNodes, plus particleLinks if relevant.
-
-Precision rules:
-- Prefer the visual that best matches the user’s intent. Do not force GRAPH when the user asked for a matrix, surface, or tree.
-- For graph and tree outputs, keep node ids stable and human-readable.
-- For 3D outputs, keep formulas consistent with the selected domain.
-- For matrices, keep rows equal length and values numeric.
-- For nested step-by-step visuals, keep each step’s visualType and supporting fields internally consistent.
-- If no visual is needed, set visualType to NONE and keep suggestedActions helpful.
+You are Professor Cluck.
+Return one valid JSON object only.
+Be as concise as possible.
+Use only the fields needed for the chosen visual.
+Keep explanation short and suggestedActions brief.
+First keys must be visualType and idea.
+No markdown, no code fences, no extra text.
+If space is tight, prefer a complete valid JSON object over extra detail.
 `;
 
 const isRateLimitLike = (error: any, status?: number) => {
@@ -401,9 +375,10 @@ export const sendMessageToGemini = async (
       throw new Error('Missing GROQ_API_KEY');
     }
 
+    const recentHistory = groqHistoryLimit > 0 ? history.slice(-groqHistoryLimit) : [];
     const messages = [
       { role: 'system', content: systemInstruction },
-      ...history.map(msg => ({
+      ...recentHistory.map(msg => ({
         role: msg.role === 'model' ? 'assistant' : 'user',
         content: msg.image ? buildContentParts(msg.text, msg.image) : msg.text
       })),
@@ -433,7 +408,7 @@ export const sendMessageToGemini = async (
     if (response.ok && isTelemetryLow(responseTelemetry)) {
       const nextModel = nextFallbackModel;
       if (nextModel) {
-        console.log(`Groq budget for ${modelToUse} is below the safe threshold; next request will rotate to ${nextModel}.`);
+        console.log(`Groq budget for ${modelToUse} is below the safe threshold; rotating next request to ${nextModel}.`);
       }
     }
 
