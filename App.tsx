@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import Sidebar from './components/Sidebar';
 import TopicPath from './components/TopicPath';
 import Whiteboard from './components/Whiteboard';
@@ -139,7 +140,12 @@ const App: React.FC = () => {
   };
 
   if (!isAuthenticated) {
-      return <AuthPage onLogin={handleLogin} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />;
+      return (
+        <>
+          <AuthPage onLogin={handleLogin} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+          <Analytics />
+        </>
+      );
   }
 
   return (
@@ -283,6 +289,7 @@ const App: React.FC = () => {
               </div>
           </div>
       )}
+      <Analytics />
     </div>
   );
 };
