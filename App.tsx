@@ -196,9 +196,9 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative">
+      <div className="flex-1 flex flex-col h-full relative isolate">
         {/* Mobile Header */}
-        <div className="md:hidden flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 z-40 transition-colors">
+        <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
             <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>
                 <Menu className="text-slate-500 dark:text-slate-400" />
             </button>

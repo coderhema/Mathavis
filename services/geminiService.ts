@@ -11,6 +11,14 @@ const groqApiKey =
   env?.API_KEY ||
   env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
+const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
+const groqDefaultMaxTokens = isFreePlanMode ? 4096 : 8192;
+const groqMaxTokens = (() => {
+  const raw = env?.GROQ_MAX_TOKENS || env?.VITE_GROQ_MAX_TOKENS;
+  const parsed = raw ? Number(raw) : groqDefaultMaxTokens;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : groqDefaultMaxTokens;
+})();
+const groqMaxRetries = isFreePlanMode ? 1 : 3;
 
 const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
@@ -71,6 +79,30 @@ const isRetryableStatus = (status?: number) => {
 };
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const getRetryAfterDelayMs = (response: Response) => {
+  const retryAfter = response.headers.get('retry-after');
+  if (!retryAfter) return undefined;
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds) && seconds > 0) return seconds * 1000;
+
+  const dateMs = Date.parse(retryAfter);
+  if (!Number.isNaN(dateMs)) {
+    return Math.max(0, dateMs - Date.now());
+  }
+
+  return undefined;
+};
+
+const calculateBackoffDelay = (attempt: number, retryAfterMs?: number) => {
+  const baseDelay = isFreePlanMode ? 2500 : 1500;
+  const exponentialDelay = baseDelay * Math.pow(2, Math.max(0, attempt));
+  const jitter = Math.floor(Math.random() * 500);
+  if (retryAfterMs && retryAfterMs > 0) {
+    return Math.max(retryAfterMs, exponentialDelay) + jitter;
+  }
+  return exponentialDelay + jitter;
+};
 
 const buildContentParts = (text: string, image?: string) => {
   const parts: any[] = [{ type: 'text', text }];
@@ -268,6 +300,7 @@ export const sendMessageToGemini = async (
   imageBase64?: string,
   retries = 3
 ): Promise<Message> => {
+  const effectiveRetries = Math.max(0, Math.min(retries, groqMaxRetries));
   try {
     if (!groqApiKey) {
       throw new Error('Missing GROQ_API_KEY');
@@ -296,24 +329,31 @@ export const sendMessageToGemini = async (
         messages,
         temperature: 0.15,
         top_p: 0.95,
-        max_tokens: 8192,
+        max_tokens: groqMaxTokens,
         response_format: { type: 'json_object' }
       })
     });
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
+      const retryAfterMs = getRetryAfterDelayMs(response);
       const error = { status: response.status, message: errorText };
-      if (isRetryableStatus(response.status) && retries > 0) {
-        const delay = Math.pow(2, 4 - retries) * 1500;
-        console.log(`Groq request hit ${response.status}. Retrying in ${delay}ms... (${retries} retries left)`);
+      if (isRetryableStatus(response.status) && effectiveRetries > 0) {
+        const attempt = groqMaxRetries - effectiveRetries;
+        const delay = calculateBackoffDelay(attempt, retryAfterMs);
+        console.log(`Groq request hit ${response.status}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, retries - 1);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1);
       }
       throw error;
     }
 
     const payload = await response.json();
+    const finishReason = payload?.choices?.[0]?.finish_reason;
+    if (finishReason === 'length') {
+      throw new Error('Groq response was truncated before completing JSON');
+    }
+
     const responseText = extractContentText(payload?.choices?.[0]?.message?.content);
     if (!responseText) {
       throw new Error('No response from Groq');
@@ -332,18 +372,38 @@ export const sendMessageToGemini = async (
     };
   } catch (error: any) {
     const status = error?.status;
-    if (isRateLimitLike(error, status)) {
-      if (retries > 0) {
-        const delay = Math.pow(2, 4 - retries) * 1500;
-        console.log(`Groq rate limit hit. Retrying in ${delay}ms... (${retries} retries left)`);
+    const errorMessage = typeof error?.message === 'string' ? error.message : '';
+    const isJsonOrTruncationError =
+      error instanceof SyntaxError ||
+      errorMessage.includes('JSON') ||
+      errorMessage.includes('Unexpected') ||
+      errorMessage.includes('truncated') ||
+      errorMessage.includes('No response from Groq');
+
+    if (isRateLimitLike(error, status) || isJsonOrTruncationError) {
+      if (effectiveRetries > 0) {
+        const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
+        const reason = isJsonOrTruncationError ? 'response parsing' : `rate limit ${status ?? ''}`.trim();
+        console.log(`Groq ${reason} hit. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, retries - 1);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1);
+      }
+
+      if (isJsonOrTruncationError) {
+        return {
+          id: Date.now().toString(),
+          role: 'model',
+          text: "Squawk! I got a partial response from Groq and couldn't finish the JSON. Please try again in a moment.",
+          visual: { type: VisualType.NONE },
+          suggestedActions: ['Try again', 'Ask for a shorter explanation'],
+          timestamp: Date.now()
+        };
       }
 
       return {
         id: Date.now().toString(),
         role: 'model',
-        text: "Squawk! I'm out of math energy right now. Please wait a minute and try again!",
+        text: "Squawk! Groq is busy right now. Please wait a minute and try again!",
         visual: { type: VisualType.NONE },
         suggestedActions: ['Try again in a minute', 'Check my progress'],
         timestamp: Date.now()

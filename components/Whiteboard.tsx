@@ -415,7 +415,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
   const currentSuggestedActions = [...messages].reverse().find(m => m.role === 'model')?.suggestedActions || [];
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 relative overflow-hidden transition-colors duration-300">
+    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-hidden transition-colors duration-300">
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
             <div 
@@ -517,7 +517,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         )}
 
         {/* Toolbar Header */}
-        <div className="z-20 px-6 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+        <div className="sticky top-0 z-[80] px-6 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
             <div className="flex items-center gap-3">
                 {onBackToMenu && (
                     <button 
@@ -569,7 +569,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         </div>
 
         {/* Chat Area */}
-        <div className={`flex-1 overflow-y-auto z-10 p-4 pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
+        <div className={`relative z-0 flex-1 overflow-y-auto p-4 pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
             <div className="max-w-4xl mx-auto space-y-8">
                 {messages.map((msg, index) => (
                     <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
