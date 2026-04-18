@@ -12,7 +12,7 @@ const groqApiKey =
   env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
-const groqDefaultMaxTokens = isFreePlanMode ? 4096 : 8192;
+const groqDefaultMaxTokens = 4096;
 const groqMaxTokens = (() => {
   const raw = env?.GROQ_MAX_TOKENS || env?.VITE_GROQ_MAX_TOKENS;
   const parsed = raw ? Number(raw) : groqDefaultMaxTokens;
