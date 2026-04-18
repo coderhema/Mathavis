@@ -1,12 +1,12 @@
-
-import { GoogleGenAI, Type } from "@google/genai";
 import { Message, VisualType, VisualContent, MathResponseSchema } from '../types';
-import { MathEngine } from "./MathEngine";
+import { MathEngine } from './MathEngine';
 
-const modelId = "gemini-3-pro-preview";
+const modelId = process.env.GROQ_MODEL || 'llama-3.2-90b-vision-preview';
+const groqApiKey = process.env.GROQ_API_KEY || process.env.API_KEY;
+const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
 const systemInstruction = `
-You are Professor Cluck, a brilliant, enthusiastic Voxel Chicken math tutor for college students.
+You are Professor Cluck, a brilliant, enthusiastic, Voxel Chicken math tutor for college students.
 Your world is made of blocks and numbers! 
 Your goal is to explain complex math concepts (Calculus, Linear Algebra, Discrete Math, Graph Theory) simply and visually.
 
@@ -38,294 +38,141 @@ You MUST respond using the specified JSON schema.
 Always provide 'explanation' and 'suggestedActions'.
 `;
 
-export const sendMessageToGemini = async (history: Message[], userMessage: string, imageBase64?: string, retries = 3): Promise<Message> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  
-  try {
-    const getMimeType = (dataUrl: string) => {
-      if (dataUrl.startsWith('data:application/pdf')) return 'application/pdf';
-      return 'image/jpeg';
-    };
+const isRateLimitLike = (error: any, status?: number) => {
+  const errorString = typeof error === 'string' ? error : JSON.stringify(error);
+  return (
+    status === 429 ||
+    error?.status === 429 ||
+    error?.error?.code === 429 ||
+    errorString.includes('429') ||
+    errorString.includes('RESOURCE_EXHAUSTED') ||
+    errorString.includes('quota')
+  );
+};
 
-    const contents = history.map(msg => ({
-      role: msg.role,
-      parts: [
-        { text: msg.text },
-        ...(msg.image ? [{ inlineData: { data: msg.image.split(',')[1], mimeType: getMimeType(msg.image) } }] : [])
-      ]
-    }));
+const isRetryableStatus = (status?: number) => {
+  return status !== undefined && [408, 425, 429, 500, 502, 503, 504].includes(status);
+};
 
-    const newUserParts: any[] = [{ text: userMessage }];
-    if (imageBase64) {
-      newUserParts.push({
-        inlineData: {
-          data: imageBase64.split(',')[1],
-          mimeType: getMimeType(imageBase64)
-        }
-      });
-    }
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    contents.push({
-      role: 'user',
-      parts: newUserParts
-    });
-
-    const response = await ai.models.generateContent({
-      model: modelId,
-      contents: contents,
-      config: {
-        systemInstruction: systemInstruction,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            explanation: { type: Type.STRING },
-            visualType: { type: Type.STRING, enum: ["PLOT", "PLOT3D", "GRAPH", "FLOWCHART", "MATRIX", "GEOMETRY3D", "STEPS", "QUIZ", "VECTOR_FIELD", "UNIT_CIRCLE", "COMPLEX_PLANE", "VENN_DIAGRAM", "NONE"] },
-            suggestedActions: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING } 
-            },
-            plotFormula: { type: Type.STRING },
-            plotDomainMin: { type: Type.NUMBER },
-            plotDomainMax: { type: Type.NUMBER },
-            plot3DFormula: { type: Type.STRING },
-            graphNodes: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  label: { type: Type.STRING },
-                  group: { type: Type.INTEGER },
-                  type: { type: Type.STRING } 
-                }
-              }
-            },
-            graphLinks: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  source: { type: Type.STRING },
-                  target: { type: Type.STRING },
-                  label: { type: Type.STRING }
-                }
-              }
-            },
-            graphDirected: { type: Type.BOOLEAN },
-            matrixRows: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.ARRAY,
-                items: { type: Type.NUMBER }
-              }
-            },
-            geometryShape: { type: Type.STRING },
-            geometryParams: { type: Type.OBJECT },
-            vectorFieldFormulaX: { type: Type.STRING },
-            vectorFieldFormulaY: { type: Type.STRING },
-            unitCircleAngle: { type: Type.NUMBER },
-            complexReal: { type: Type.NUMBER },
-            complexImaginary: { type: Type.NUMBER },
-            vennSets: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  label: { type: Type.STRING },
-                  size: { type: Type.NUMBER }
-                }
-              }
-            },
-            vennIntersections: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  sets: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-                  size: { type: Type.NUMBER }
-                }
-              }
-            },
-            quiz: {
-              type: Type.OBJECT,
-              properties: {
-                question: { type: Type.STRING },
-                options: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      id: { type: Type.STRING },
-                      text: { type: Type.STRING },
-                      isCorrect: { type: Type.BOOLEAN }
-                    },
-                    required: ["id", "text", "isCorrect"]
-                  }
-                },
-                explanation: { type: Type.STRING }
-              },
-              required: ["question", "options", "explanation"]
-            },
-            stepByStep: {
-              type: Type.OBJECT,
-              properties: {
-                problem: { type: Type.STRING },
-                steps: {
-                  type: Type.ARRAY,
-                  items: {
-                    type: Type.OBJECT,
-                    properties: {
-                      title: { type: Type.STRING },
-                      explanation: { type: Type.STRING },
-                      visualType: { type: Type.STRING, enum: ["PLOT", "PLOT3D", "GRAPH", "FLOWCHART", "MATRIX", "GEOMETRY3D", "QUIZ", "VECTOR_FIELD", "UNIT_CIRCLE", "COMPLEX_PLANE", "VENN_DIAGRAM", "NONE"] },
-                      plotFormula: { type: Type.STRING },
-                      plotDomainMin: { type: Type.NUMBER },
-                      plotDomainMax: { type: Type.NUMBER },
-                      plot3DFormula: { type: Type.STRING },
-                      graphNodes: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            id: { type: Type.STRING },
-                            label: { type: Type.STRING },
-                            group: { type: Type.INTEGER },
-                            type: { type: Type.STRING } 
-                          }
-                        }
-                      },
-                      graphLinks: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            source: { type: Type.STRING },
-                            target: { type: Type.STRING },
-                            label: { type: Type.STRING }
-                          }
-                        }
-                      },
-                      graphDirected: { type: Type.BOOLEAN },
-                      matrixRows: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.ARRAY,
-                          items: { type: Type.NUMBER }
-                        }
-                      },
-                      geometryShape: { type: Type.STRING },
-                      geometryParams: { type: Type.OBJECT },
-                      vectorFieldFormulaX: { type: Type.STRING },
-                      vectorFieldFormulaY: { type: Type.STRING },
-                      unitCircleAngle: { type: Type.NUMBER },
-                      complexReal: { type: Type.NUMBER },
-                      complexImaginary: { type: Type.NUMBER },
-                      vennSets: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            label: { type: Type.STRING },
-                            size: { type: Type.NUMBER }
-                          }
-                        }
-                      },
-                      vennIntersections: {
-                        type: Type.ARRAY,
-                        items: {
-                          type: Type.OBJECT,
-                          properties: {
-                            sets: { type: Type.ARRAY, items: { type: Type.NUMBER } },
-                            size: { type: Type.NUMBER }
-                          }
-                        }
-                      },
-                      quiz: {
-                        type: Type.OBJECT,
-                        properties: {
-                          question: { type: Type.STRING },
-                          options: {
-                            type: Type.ARRAY,
-                            items: {
-                              type: Type.OBJECT,
-                              properties: {
-                                id: { type: Type.STRING },
-                                text: { type: Type.STRING },
-                                isCorrect: { type: Type.BOOLEAN }
-                              },
-                              required: ["id", "text", "isCorrect"]
-                            }
-                          },
-                          explanation: { type: Type.STRING }
-                        },
-                        required: ["question", "options", "explanation"]
-                      }
-                    },
-                    required: ["title", "explanation", "visualType"]
-                  }
-                }
-              },
-              required: ["problem", "steps"]
-            }
-          },
-          required: ["explanation", "visualType", "suggestedActions"]
-        }
+const buildContentParts = (text: string, image?: string) => {
+  const parts: any[] = [{ type: 'text', text }];
+  if (image) {
+    parts.push({
+      type: 'image_url',
+      image_url: {
+        url: image
       }
     });
+  }
+  return parts;
+};
 
-    const responseText = response.text;
-    if (!responseText) throw new Error("No response from Gemini");
+const parseJsonResponse = (responseText: string): MathResponseSchema => {
+  const cleaned = responseText
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```\s*$/i, '');
 
-    const data = JSON.parse(responseText) as MathResponseSchema;
+  return JSON.parse(cleaned) as MathResponseSchema;
+};
+
+export const sendMessageToGemini = async (
+  history: Message[],
+  userMessage: string,
+  imageBase64?: string,
+  retries = 3
+): Promise<Message> => {
+  try {
+    if (!groqApiKey) {
+      throw new Error('Missing GROQ_API_KEY or API_KEY');
+    }
+
+    const messages = [
+      { role: 'system', content: systemInstruction },
+      ...history.map(msg => ({
+        role: msg.role === 'model' ? 'assistant' : 'user',
+        content: msg.image ? buildContentParts(msg.text, msg.image) : msg.text
+      })),
+      {
+        role: 'user',
+        content: imageBase64 ? buildContentParts(userMessage, imageBase64) : userMessage
+      }
+    ];
+
+    const response = await fetch(groqApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${groqApiKey}`
+      },
+      body: JSON.stringify({
+        model: modelId,
+        messages,
+        temperature: 0.2,
+        response_format: { type: 'json_object' }
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => '');
+      const error = { status: response.status, message: errorText };
+      if (isRetryableStatus(response.status) && retries > 0) {
+        const delay = Math.pow(2, 4 - retries) * 1500;
+        console.log(`Groq request hit ${response.status}. Retrying in ${delay}ms... (${retries} retries left)`);
+        await sleep(delay);
+        return sendMessageToGemini(history, userMessage, imageBase64, retries - 1);
+      }
+      throw error;
+    }
+
+    const payload = await response.json();
+    const responseText = payload?.choices?.[0]?.message?.content;
+    if (!responseText) {
+      throw new Error('No response from Groq');
+    }
+
+    const data = parseJsonResponse(Array.isArray(responseText) ? responseText.map((part: any) => part?.text ?? '').join('') : String(responseText));
     const visual = MathEngine.processResponse(data);
 
     return {
       id: Date.now().toString(),
       role: 'model',
       text: data.explanation,
-      visual: visual,
-      suggestedActions: data.suggestedActions || ["Explain more", "Show an example"],
+      visual,
+      suggestedActions: data.suggestedActions || ['Explain more', 'Show an example'],
       timestamp: Date.now()
     };
-
   } catch (error: any) {
-    // Handle 429 Rate Limit Error
-    const errorString = typeof error === 'string' ? error : JSON.stringify(error);
-    const isRateLimit = 
-      error?.status === 429 || 
-      error?.error?.code === 429 ||
-      errorString.includes('429') || 
-      errorString.includes('RESOURCE_EXHAUSTED') ||
-      errorString.includes('quota');
-
-    if (isRateLimit) {
+    const status = error?.status;
+    if (isRateLimitLike(error, status)) {
       if (retries > 0) {
-        // Exponential backoff: 3s, 6s, 12s
         const delay = Math.pow(2, 4 - retries) * 1500;
-        console.log(`Rate limit hit. Retrying in ${delay}ms... (${retries} retries left)`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        console.log(`Groq rate limit hit. Retrying in ${delay}ms... (${retries} retries left)`);
+        await sleep(delay);
         return sendMessageToGemini(history, userMessage, imageBase64, retries - 1);
       }
-      
+
       return {
         id: Date.now().toString(),
         role: 'model',
-        text: "Squawk! I'm out of math energy (quota exceeded). The math universe is a bit crowded right now. Please wait a minute and try again!",
+        text: "Squawk! I'm out of math energy right now. Please wait a minute and try again!",
         visual: { type: VisualType.NONE },
-        suggestedActions: ["Try again in a minute", "Check my progress"],
+        suggestedActions: ['Try again in a minute', 'Check my progress'],
         timestamp: Date.now()
       };
     }
 
-    console.error("Gemini API Error:", error);
+    console.error('Groq API Error:', error);
 
     return {
       id: Date.now().toString(),
       role: 'model',
-      text: "Squawk! I'm having trouble connecting to the math universe. Check your PROJECT or PROJECT_ID if required, or try again later.",
+      text: "Squawk! I'm having trouble connecting to the math universe. Please try again later.",
       visual: { type: VisualType.NONE },
-      suggestedActions: ["Try again"],
+      suggestedActions: ['Try again'],
       timestamp: Date.now()
     };
   }
