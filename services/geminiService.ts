@@ -20,11 +20,13 @@ You are Professor Cluck, an expert math tutor that answers with exact JSON only.
 Use the entire conversation context. If the user refers to "this", "that", "same", "again", or an earlier visual, preserve the earlier topic, labels, notation, ranges, and settings unless the user explicitly changes them.
 
 Output contract:
-- Return valid JSON only. No markdown, no code fences, no commentary.
+- Return one complete valid JSON object only. No markdown, no code fences, no commentary, no trailing text.
+- The response must begin with { and end with }.
 - Always include explanation, visualType, and suggestedActions.
 - Use exact uppercase visualType values from the schema.
 - Include only the fields relevant to the chosen visual.
-- When a visual is needed, make the JSON complete enough for the frontend to render it without guessing.
+- Make the JSON complete enough for the frontend to render it without guessing.
+- If you are at risk of exceeding the token budget, prioritize finishing a valid JSON object over adding extra explanation.
 
 Visualization rules:
 1. PLOT: single-variable functions. Provide plotFormula. Add plotDomainMin and plotDomainMax when helpful.
@@ -99,8 +101,52 @@ const stripCodeFences = (text: string) => text
   .replace(/^```\s*/i, '')
   .replace(/```\s*$/i, '');
 
+const extractBalancedJsonObject = (text: string): string | null => {
+  const cleaned = stripCodeFences(text);
+  const start = cleaned.indexOf('{');
+  if (start < 0) return null;
+
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+
+  for (let i = start; i < cleaned.length; i++) {
+    const ch = cleaned[i];
+
+    if (escape) {
+      escape = false;
+      continue;
+    }
+
+    if (ch === '\\') {
+      escape = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (ch === '{') depth += 1;
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return cleaned.slice(start, i + 1);
+      }
+    }
+  }
+
+  return null;
+};
+
 const extractJsonCandidate = (text: string): string => {
   const cleaned = stripCodeFences(text);
+  const balanced = extractBalancedJsonObject(cleaned);
+  if (balanced) return balanced;
+
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
   if (firstBrace >= 0 && lastBrace > firstBrace) {
@@ -114,109 +160,12 @@ const parseJsonResponse = (responseText: string): Partial<MathResponseSchema> =>
   try {
     return JSON.parse(candidate) as Partial<MathResponseSchema>;
   } catch {
-    const relaxed = candidate
-      .replace(/\n/g, '\\n')
-      .replace(/\t/g, '\\t');
-    return JSON.parse(relaxed) as Partial<MathResponseSchema>;
+    const repaired = candidate
+      .replace(/\\n/g, '\\\\n')
+      .replace(/\\t/g, '\\\\t')
+      .replace(/,\s*([}\]])/g, '$1');
+    return JSON.parse(repaired) as Partial<MathResponseSchema>;
   }
-};
-
-const asStringArray = (value: unknown, fallback: string[] = []): string[] => {
-  if (!Array.isArray(value)) return fallback;
-  const result = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
-  return result.length > 0 ? result : fallback;
-};
-
-const cleanString = (value: unknown): string | undefined => {
-  return typeof value === 'string' && value.trim().length > 0 ? value.trim() : undefined;
-};
-
-const normalizeVisualType = (value: unknown): VisualType => {
-  const raw = typeof value === 'string' ? value.toUpperCase().trim() : '';
-  if (raw && validVisualTypes.has(raw as VisualType)) return raw as VisualType;
-  return VisualType.NONE;
-};
-
-const normalizeGraphMode = (value: unknown): 'network' | 'flowchart' | 'tree' | undefined => {
-  const raw = typeof value === 'string' ? value.toLowerCase().trim() : '';
-  return validGraphModes.has(raw) ? (raw as 'network' | 'flowchart' | 'tree') : undefined;
-};
-
-const normalizeMatrixRows = (rows: unknown): number[][] | undefined => {
-  if (!Array.isArray(rows) || rows.length === 0) return undefined;
-  const normalized = rows
-    .filter((row): row is any[] => Array.isArray(row))
-    .map(row => row.map(cell => (typeof cell === 'number' && Number.isFinite(cell) ? cell : Number(cell))))
-    .filter(row => row.every(cell => typeof cell === 'number' && Number.isFinite(cell)));
-  if (!normalized.length) return undefined;
-  const maxCols = Math.max(...normalized.map(row => row.length), 0);
-  if (!maxCols) return undefined;
-  return normalized.map(row => {
-    const next = [...row];
-    while (next.length < maxCols) next.push(0);
-    return next;
-  });
-};
-
-const inferVisualType = (data: Partial<MathResponseSchema>): VisualType => {
-  const explicit = normalizeVisualType(data.visualType);
-  if (explicit !== VisualType.NONE) return explicit;
-
-  const graphMode = normalizeGraphMode(data.graphMode);
-  if (graphMode === 'flowchart') return VisualType.FLOWCHART;
-  if (graphMode === 'tree') return VisualType.TREE;
-  if (graphMode === 'network') return VisualType.GRAPH;
-
-  if (data.stepByStep?.steps?.length) return VisualType.STEPS;
-  if (data.quiz) return VisualType.QUIZ;
-  if (data.bentoItems?.length) return VisualType.BENTO;
-  if (data.treeNodes?.length) return VisualType.TREE;
-  if (data.particleNodes?.length) return VisualType.PARTICLE;
-  if (data.vennSets?.length) return VisualType.VENN_DIAGRAM;
-  if (data.complexReal !== undefined && data.complexImaginary !== undefined) return VisualType.COMPLEX_PLANE;
-  if (data.unitCircleAngle !== undefined) return VisualType.UNIT_CIRCLE;
-  if (data.vectorFieldFormulaX && data.vectorFieldFormulaY) return VisualType.VECTOR_FIELD;
-  if (data.geometryShape) return VisualType.GEOMETRY3D;
-  if (normalizeMatrixRows(data.matrixRows)?.length) return VisualType.MATRIX;
-  if (data.graphNodes?.length) {
-    const hasTreeFields = data.graphNodes.some(node => typeof node.parentId === 'string');
-    const hasFlowFields = data.graphNodes.some(node => typeof node.type === 'string');
-    if (hasTreeFields) return VisualType.TREE;
-    if (hasFlowFields) return VisualType.FLOWCHART;
-    return VisualType.GRAPH;
-  }
-  if (data.plot3DFormula) return VisualType.PLOT3D;
-  if (data.plotFormula) return VisualType.PLOT;
-
-  return VisualType.NONE;
-};
-
-const normalizeNodes = (nodes: any[]): any[] | undefined => {
-  if (!Array.isArray(nodes)) return undefined;
-  const cleaned = nodes
-    .filter(node => node && typeof node.id === 'string')
-    .map(node => ({
-      id: node.id,
-      label: cleanString(node.label) ?? node.id,
-      group: typeof node.group === 'number' ? node.group : undefined,
-      type: cleanString(node.type),
-      parentId: cleanString(node.parentId),
-      note: cleanString(node.note),
-    }));
-  return cleaned.length ? cleaned : undefined;
-};
-
-const normalizeLinks = (links: any[]): any[] | undefined => {
-  if (!Array.isArray(links)) return undefined;
-  const cleaned = links
-    .filter(link => link && typeof link.source === 'string' && typeof link.target === 'string')
-    .map(link => ({
-      source: link.source,
-      target: link.target,
-      label: cleanString(link.label),
-      value: typeof link.value === 'number' ? link.value : undefined,
-    }));
-  return cleaned.length ? cleaned : undefined;
 };
 
 const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchema => {
@@ -347,6 +296,7 @@ export const sendMessageToGemini = async (
         messages,
         temperature: 0.15,
         top_p: 0.95,
+        max_tokens: 8192,
         response_format: { type: 'json_object' }
       })
     });
