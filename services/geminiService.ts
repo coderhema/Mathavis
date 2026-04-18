@@ -19,6 +19,7 @@ const groqMaxTokens = (() => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : groqDefaultMaxTokens;
 })();
 const groqMaxRetries = isFreePlanMode ? 1 : 3;
+const fallbackModelId = env?.GROQ_FALLBACK_MODEL || env?.VITE_GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant';
 
 const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
@@ -301,9 +302,12 @@ export const sendMessageToGemini = async (
   history: Message[],
   userMessage: string,
   imageBase64?: string,
-  retries = 3
+  retries = 3,
+  modelOverride?: string,
+  usedFallback = false
 ): Promise<Message> => {
   const effectiveRetries = Math.max(0, Math.min(retries, groqMaxRetries));
+  const modelToUse = modelOverride ?? modelId;
   try {
     if (!groqApiKey) {
       throw new Error('Missing GROQ_API_KEY');
@@ -328,7 +332,7 @@ export const sendMessageToGemini = async (
         Authorization: `Bearer ${groqApiKey}`
       },
       body: JSON.stringify({
-        model: imageBase64 ? visionModelId : modelId,
+        model: imageBase64 ? visionModelId : modelToUse,
         messages,
         temperature: 0.15,
         top_p: 0.95,
@@ -341,12 +345,20 @@ export const sendMessageToGemini = async (
       const errorText = await response.text().catch(() => '');
       const retryAfterMs = getRetryAfterDelayMs(response);
       const error = { status: response.status, message: errorText };
+
+      if (response.status === 429 && modelToUse === modelId && !usedFallback && fallbackModelId !== modelToUse) {
+        const fallbackDelay = calculateBackoffDelay(groqMaxRetries - effectiveRetries, retryAfterMs);
+        console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModelId} in ${fallbackDelay}ms...`);
+        await sleep(fallbackDelay);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModelId, true);
+      }
+
       if (isRetryableStatus(response.status) && effectiveRetries > 0) {
         const attempt = groqMaxRetries - effectiveRetries;
         const delay = calculateBackoffDelay(attempt, retryAfterMs);
-        console.log(`Groq request hit ${response.status}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
+        console.log(`Groq request hit ${response.status} on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse, usedFallback);
       }
       throw error;
     }
@@ -384,12 +396,19 @@ export const sendMessageToGemini = async (
       errorMessage.includes('No response from Groq');
 
     if (isRateLimitLike(error, status) || isJsonOrTruncationError) {
+      if (isRateLimitLike(error, status) && modelToUse === modelId && !usedFallback && fallbackModelId !== modelToUse) {
+        const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
+        console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModelId} in ${delay}ms...`);
+        await sleep(delay);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModelId, true);
+      }
+
       if (effectiveRetries > 0) {
         const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
         const reason = isJsonOrTruncationError ? 'response parsing' : `rate limit ${status ?? ''}`.trim();
-        console.log(`Groq ${reason} hit. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
+        console.log(`Groq ${reason} hit on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse, usedFallback);
       }
 
       if (isJsonOrTruncationError) {
