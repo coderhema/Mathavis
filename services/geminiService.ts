@@ -19,7 +19,15 @@ const groqMaxTokens = (() => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : groqDefaultMaxTokens;
 })();
 const groqMaxRetries = isFreePlanMode ? 1 : 3;
-const fallbackModelId = env?.GROQ_FALLBACK_MODEL || env?.VITE_GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant';
+const qwenFallbackModels = (() => {
+  const raw = env?.GROQ_QWEN_MODELS || env?.VITE_GROQ_QWEN_MODELS;
+  const models = raw ? raw.split(',').map(model => model.trim()).filter(Boolean) : ['qwen/qwen3-32b'];
+  return [...new Set(models)];
+})();
+const groqFallbackModels = [
+  ...qwenFallbackModels,
+  env?.GROQ_FALLBACK_MODEL || env?.VITE_GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant'
+].filter((model, index, list) => Boolean(model) && list.indexOf(model) === index);
 
 const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
@@ -303,11 +311,12 @@ export const sendMessageToGemini = async (
   userMessage: string,
   imageBase64?: string,
   retries = 3,
-  modelOverride?: string,
-  usedFallback = false
+  modelOverride?: string
 ): Promise<Message> => {
   const effectiveRetries = Math.max(0, Math.min(retries, groqMaxRetries));
   const modelToUse = modelOverride ?? modelId;
+  const currentFallbackIndex = groqFallbackModels.indexOf(modelToUse);
+  const nextFallbackModel = currentFallbackIndex >= 0 ? groqFallbackModels[currentFallbackIndex + 1] : undefined;
   try {
     if (!groqApiKey) {
       throw new Error('Missing GROQ_API_KEY');
@@ -346,11 +355,14 @@ export const sendMessageToGemini = async (
       const retryAfterMs = getRetryAfterDelayMs(response);
       const error = { status: response.status, message: errorText };
 
-      if (response.status === 429 && modelToUse === modelId && !usedFallback && fallbackModelId !== modelToUse) {
-        const fallbackDelay = calculateBackoffDelay(groqMaxRetries - effectiveRetries, retryAfterMs);
-        console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModelId} in ${fallbackDelay}ms...`);
-        await sleep(fallbackDelay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModelId, true);
+      if (response.status === 429) {
+        const fallbackModel = nextFallbackModel;
+        if (fallbackModel && fallbackModel !== modelToUse) {
+          const fallbackDelay = calculateBackoffDelay(groqMaxRetries - effectiveRetries, retryAfterMs);
+          console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModel} in ${fallbackDelay}ms...`);
+          await sleep(fallbackDelay);
+          return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModel);
+        }
       }
 
       if (isRetryableStatus(response.status) && effectiveRetries > 0) {
@@ -358,7 +370,7 @@ export const sendMessageToGemini = async (
         const delay = calculateBackoffDelay(attempt, retryAfterMs);
         console.log(`Groq request hit ${response.status} on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse, usedFallback);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse);
       }
       throw error;
     }
@@ -396,11 +408,14 @@ export const sendMessageToGemini = async (
       errorMessage.includes('No response from Groq');
 
     if (isRateLimitLike(error, status) || isJsonOrTruncationError) {
-      if (isRateLimitLike(error, status) && modelToUse === modelId && !usedFallback && fallbackModelId !== modelToUse) {
-        const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
-        console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModelId} in ${delay}ms...`);
-        await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModelId, true);
+      if (isRateLimitLike(error, status)) {
+        const fallbackModel = nextFallbackModel;
+        if (fallbackModel && fallbackModel !== modelToUse) {
+          const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
+          console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModel} in ${delay}ms...`);
+          await sleep(delay);
+          return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModel);
+        }
       }
 
       if (effectiveRetries > 0) {
@@ -408,7 +423,7 @@ export const sendMessageToGemini = async (
         const reason = isJsonOrTruncationError ? 'response parsing' : `rate limit ${status ?? ''}`.trim();
         console.log(`Groq ${reason} hit on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
-        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse, usedFallback);
+        return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse);
       }
 
       if (isJsonOrTruncationError) {
