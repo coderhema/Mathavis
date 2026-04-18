@@ -2,7 +2,8 @@ import { Message, VisualType, MathResponseSchema } from '../types';
 import { MathEngine } from './MathEngine';
 
 const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
-const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile';
+const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.1-8b-instant';
+const visionModelId = env?.GROQ_VISION_MODEL || env?.VITE_GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
 const groqApiKey =
   env?.GROQ_API_KEY ||
   env?.GROQAPI_KEY ||
@@ -11,37 +12,37 @@ const groqApiKey =
   env?.GEMINI_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 
+const validVisualTypes = new Set(Object.values(VisualType));
+
 const systemInstruction = `
-You are Professor Cluck, a brilliant, enthusiastic, Voxel Chicken math tutor for college students.
-Your world is made of blocks and numbers! 
-Your goal is to explain complex math concepts (Calculus, Linear Algebra, Discrete Math, Graph Theory) simply and visually.
+You are Professor Cluck, a brilliant, enthusiastic math tutor for college students.
+You explain Calculus, Linear Algebra, Discrete Math, Graph Theory, and related topics clearly and visually.
 
-Visual Types:
-1. PLOT (2D): Use for functions f(x). Formula: valid JS math string using 'x'.
-2. PLOT3D (3D): Use for surfaces f(x,y). Formula: valid JS math string using 'x' and 'y' (e.g. "Math.sin(x) * Math.cos(y)").
-3. GRAPH: Use for abstract structures, trees, networking. Specify 'graphDirected' (boolean) if the edges have direction.
-4. FLOWCHART: Use for algorithms, logical processes. Node types: 'start', 'step', 'decision', 'end'.
-5. MATRIX: Use for linear algebra.
-6. GEOMETRY3D: Use for 3D shapes. Shapes: 'sphere', 'cone', 'cylinder', 'box', 'torus', 'paraboloid'.
-7. STEPS: Use for step-by-step problem solving. Each step MUST have a title, explanation, and a visualType (one of the above or NONE).
-8. QUIZ: Use for multiple-choice questions to test the user's knowledge.
-9. VECTOR_FIELD: Use for 2D vector fields in calculus. Provide 'vectorFieldFormulaX' and 'vectorFieldFormulaY'.
-10. UNIT_CIRCLE: Use for trigonometry. Provide 'unitCircleAngle' in degrees.
-11. COMPLEX_PLANE: Use for complex numbers. Provide 'complexReal' and 'complexImaginary'.
-12. VENN_DIAGRAM: Use for set theory. Provide 'vennSets' and 'vennIntersections'.
+Use the full conversation history as context. If the user says "this", "that", "same", "again", "more", or refers to an earlier visual, preserve the prior topic, notation, ranges, labels, and visualization settings unless the user explicitly changes them.
 
-Math Content Rules:
-- ALWAYS use LaTeX with single ($) or double ($$) dollar signs.
-- If the user provides an image or PDF, solve the math problem shown with step-by-step logic.
-- Be precise, technical, and encouraging.
-- Mention "AI Seeds" if the user asks about how you generate these visualisations.
-- CRITICAL: When the user says "show me", "visualize", "draw", or "plot", you MUST provide an interactive visual using one of the Visual Types above. Do not just explain with text.
-- CRITICAL: When the user asks to "solve step by step", "show steps", or "explain the process", you MUST use the STEPS visual type.
-- For PLOT3D or GEOMETRY3D, you should also provide a corresponding 2D PLOT (if applicable) as a static preview.
+Visualization rules:
+1. PLOT: 2D functions. Use a valid JavaScript math expression in plotFormula with x, plus plotDomainMin and plotDomainMax when helpful.
+2. PLOT3D: Surfaces. Use plot3DFormula with x and y. If a 2D preview helps, keep the plot context aligned with the same function.
+3. GRAPH: Abstract structures, trees, networks. Use graphNodes, graphLinks, and graphDirected when direction matters.
+4. FLOWCHART: Algorithms and procedures. Use graphNodes with node types like start, step, decision, end, plus graphLinks.
+5. MATRIX: Linear algebra matrices. Use matrixRows.
+6. GEOMETRY3D: 3D shapes. Use geometryShape and geometryParams.
+7. STEPS: Step-by-step solutions. Each step must include a title, explanation, and visualType. Keep the steps aligned with the same problem.
+8. QUIZ: Multiple-choice practice. Include question, options, and explanation.
+9. VECTOR_FIELD: Use vectorFieldFormulaX and vectorFieldFormulaY.
+10. UNIT_CIRCLE: Use unitCircleAngle in degrees.
+11. COMPLEX_PLANE: Use complexReal and complexImaginary.
+12. VENN_DIAGRAM: Use vennSets and vennIntersections.
 
-Response Format:
-You MUST respond using the specified JSON schema.
-Always provide 'explanation' and 'suggestedActions'.
+When the user asks to show, draw, plot, visualize, or solve step by step, you must choose the matching visual type and provide the settings needed for the frontend to render it.
+
+Response contract:
+- Return valid JSON only.
+- Always include explanation, visualType, and suggestedActions.
+- Use uppercase visualType values exactly matching the schema.
+- Populate only the fields relevant to the chosen visual.
+- If you are using steps, make sure the top-level response includes stepByStep and each step carries the appropriate visualType.
+- Be concise in explanation unless the user asks for more detail.
 `;
 
 const isRateLimitLike = (error: any, status?: number) => {
@@ -67,9 +68,7 @@ const buildContentParts = (text: string, image?: string) => {
   if (image) {
     parts.push({
       type: 'image_url',
-      image_url: {
-        url: image
-      }
+      image_url: { url: image }
     });
   }
   return parts;
@@ -82,6 +81,7 @@ const extractContentText = (content: unknown): string => {
       .map((part: any) => {
         if (typeof part === 'string') return part;
         if (part && typeof part.text === 'string') return part.text;
+        if (part && typeof part.content === 'string') return part.content;
         return '';
       })
       .join('');
@@ -89,40 +89,109 @@ const extractContentText = (content: unknown): string => {
   return '';
 };
 
-const parseJsonResponse = (responseText: string): MathResponseSchema => {
+const parseJsonResponse = (responseText: string): Partial<MathResponseSchema> => {
   const cleaned = responseText
     .trim()
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/i, '')
     .replace(/```\s*$/i, '');
 
-  return JSON.parse(cleaned) as MathResponseSchema;
+  return JSON.parse(cleaned) as Partial<MathResponseSchema>;
 };
 
-const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchema => ({
-  explanation: typeof data.explanation === 'string' ? data.explanation : 'I could not generate a valid response.',
-  visualType: typeof data.visualType === 'string' ? data.visualType : 'NONE',
-  suggestedActions: Array.isArray(data.suggestedActions) ? data.suggestedActions.filter((x): x is string => typeof x === 'string') : [],
-  plotFormula: data.plotFormula,
-  plotDomainMin: data.plotDomainMin,
-  plotDomainMax: data.plotDomainMax,
-  plot3DFormula: data.plot3DFormula,
-  graphNodes: data.graphNodes,
-  graphLinks: data.graphLinks,
-  graphDirected: data.graphDirected,
-  matrixRows: data.matrixRows,
-  geometryShape: data.geometryShape,
-  geometryParams: data.geometryParams,
-  vectorFieldFormulaX: data.vectorFieldFormulaX,
-  vectorFieldFormulaY: data.vectorFieldFormulaY,
-  unitCircleAngle: data.unitCircleAngle,
-  complexReal: data.complexReal,
-  complexImaginary: data.complexImaginary,
-  vennSets: data.vennSets,
-  vennIntersections: data.vennIntersections,
-  quiz: data.quiz,
-  stepByStep: data.stepByStep,
-});
+const asStringArray = (value: unknown, fallback: string[] = []): string[] => {
+  if (!Array.isArray(value)) return fallback;
+  const result = value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+  return result.length > 0 ? result : fallback;
+};
+
+const normalizeVisualType = (value: unknown): VisualType => {
+  const raw = typeof value === 'string' ? value.toUpperCase() : '';
+  if (raw && validVisualTypes.has(raw as VisualType)) return raw as VisualType;
+  return VisualType.NONE;
+};
+
+const inferVisualType = (data: Partial<MathResponseSchema>): VisualType => {
+  const explicit = normalizeVisualType(data.visualType);
+  if (explicit !== VisualType.NONE) return explicit;
+
+  if (data.stepByStep?.steps?.length) return VisualType.STEPS;
+  if (data.quiz) return VisualType.QUIZ;
+  if (data.vennSets?.length) return VisualType.VENN_DIAGRAM;
+  if (data.complexReal !== undefined && data.complexImaginary !== undefined) return VisualType.COMPLEX_PLANE;
+  if (data.unitCircleAngle !== undefined) return VisualType.UNIT_CIRCLE;
+  if (data.vectorFieldFormulaX && data.vectorFieldFormulaY) return VisualType.VECTOR_FIELD;
+  if (data.geometryShape) return VisualType.GEOMETRY3D;
+  if (data.matrixRows?.length) return VisualType.MATRIX;
+  if (data.graphNodes?.length) {
+    const hasFlowchartNodes = data.graphNodes.some(node => typeof (node as any).type === 'string');
+    return hasFlowchartNodes ? VisualType.FLOWCHART : VisualType.GRAPH;
+  }
+  if (data.plot3DFormula) return VisualType.PLOT3D;
+  if (data.plotFormula) return VisualType.PLOT;
+
+  return VisualType.NONE;
+};
+
+const normalizeResponse = (data: Partial<MathResponseSchema>): MathResponseSchema => {
+  const visualType = inferVisualType(data);
+
+  return {
+    explanation: typeof data.explanation === 'string' && data.explanation.trim().length > 0
+      ? data.explanation
+      : 'I could not generate a valid response.',
+    visualType,
+    suggestedActions: asStringArray(data.suggestedActions, ['Explain more', 'Show an example']),
+    plotFormula: typeof data.plotFormula === 'string' ? data.plotFormula : undefined,
+    plotDomainMin: typeof data.plotDomainMin === 'number' ? data.plotDomainMin : undefined,
+    plotDomainMax: typeof data.plotDomainMax === 'number' ? data.plotDomainMax : undefined,
+    plot3DFormula: typeof data.plot3DFormula === 'string' ? data.plot3DFormula : undefined,
+    graphNodes: Array.isArray(data.graphNodes) ? data.graphNodes : undefined,
+    graphLinks: Array.isArray(data.graphLinks) ? data.graphLinks : undefined,
+    graphDirected: typeof data.graphDirected === 'boolean' ? data.graphDirected : undefined,
+    matrixRows: Array.isArray(data.matrixRows) ? data.matrixRows : undefined,
+    geometryShape: typeof data.geometryShape === 'string' ? data.geometryShape : undefined,
+    geometryParams: data.geometryParams,
+    vectorFieldFormulaX: typeof data.vectorFieldFormulaX === 'string' ? data.vectorFieldFormulaX : undefined,
+    vectorFieldFormulaY: typeof data.vectorFieldFormulaY === 'string' ? data.vectorFieldFormulaY : undefined,
+    unitCircleAngle: typeof data.unitCircleAngle === 'number' ? data.unitCircleAngle : undefined,
+    complexReal: typeof data.complexReal === 'number' ? data.complexReal : undefined,
+    complexImaginary: typeof data.complexImaginary === 'number' ? data.complexImaginary : undefined,
+    vennSets: Array.isArray(data.vennSets) ? data.vennSets : undefined,
+    vennIntersections: Array.isArray(data.vennIntersections) ? data.vennIntersections : undefined,
+    quiz: data.quiz && typeof data.quiz.question === 'string' ? data.quiz : undefined,
+    stepByStep: data.stepByStep && Array.isArray(data.stepByStep.steps)
+      ? {
+          problem: typeof data.stepByStep.problem === 'string' ? data.stepByStep.problem : '',
+          steps: data.stepByStep.steps
+            .filter((step: any) => step && typeof step.title === 'string' && typeof step.explanation === 'string')
+            .map((step: any) => ({
+              title: step.title,
+              explanation: step.explanation,
+              visualType: typeof step.visualType === 'string' ? step.visualType : 'NONE',
+              plotFormula: typeof step.plotFormula === 'string' ? step.plotFormula : undefined,
+              plotDomainMin: typeof step.plotDomainMin === 'number' ? step.plotDomainMin : undefined,
+              plotDomainMax: typeof step.plotDomainMax === 'number' ? step.plotDomainMax : undefined,
+              plot3DFormula: typeof step.plot3DFormula === 'string' ? step.plot3DFormula : undefined,
+              graphNodes: Array.isArray(step.graphNodes) ? step.graphNodes : undefined,
+              graphLinks: Array.isArray(step.graphLinks) ? step.graphLinks : undefined,
+              graphDirected: typeof step.graphDirected === 'boolean' ? step.graphDirected : undefined,
+              matrixRows: Array.isArray(step.matrixRows) ? step.matrixRows : undefined,
+              geometryShape: typeof step.geometryShape === 'string' ? step.geometryShape : undefined,
+              geometryParams: step.geometryParams,
+              vectorFieldFormulaX: typeof step.vectorFieldFormulaX === 'string' ? step.vectorFieldFormulaX : undefined,
+              vectorFieldFormulaY: typeof step.vectorFieldFormulaY === 'string' ? step.vectorFieldFormulaY : undefined,
+              unitCircleAngle: typeof step.unitCircleAngle === 'number' ? step.unitCircleAngle : undefined,
+              complexReal: typeof step.complexReal === 'number' ? step.complexReal : undefined,
+              complexImaginary: typeof step.complexImaginary === 'number' ? step.complexImaginary : undefined,
+              vennSets: Array.isArray(step.vennSets) ? step.vennSets : undefined,
+              vennIntersections: Array.isArray(step.vennIntersections) ? step.vennIntersections : undefined,
+              quiz: step.quiz && typeof step.quiz.question === 'string' ? step.quiz : undefined,
+            }))
+        }
+      : undefined,
+  };
+};
 
 export const sendMessageToGemini = async (
   history: Message[],
@@ -154,7 +223,7 @@ export const sendMessageToGemini = async (
         Authorization: `Bearer ${groqApiKey}`
       },
       body: JSON.stringify({
-        model: modelId,
+        model: imageBase64 ? visionModelId : modelId,
         messages,
         temperature: 0.2,
         response_format: { type: 'json_object' }
@@ -187,7 +256,7 @@ export const sendMessageToGemini = async (
       role: 'model',
       text: data.explanation,
       visual,
-      suggestedActions: data.suggestedActions.length > 0 ? data.suggestedActions : ['Explain more', 'Show an example'],
+      suggestedActions: data.suggestedActions,
       timestamp: Date.now()
     };
   } catch (error: any) {

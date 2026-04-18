@@ -595,7 +595,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         </div>
 
                         {msg.visual && msg.visual.type !== VisualType.NONE && (
-                            <div className="mt-4 ml-4 w-full max-w-2xl bg-white dark:bg-slate-900 p-2 rounded-3xl border-2 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
+                            <div className="mt-4 ml-4  w-full max-w-2xl bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
                                 <button 
                                     onClick={() => { soundService.playBoop(); setExpandedArtifact(msg); }}
                                     className="absolute top-4 right-4 z-20 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
