@@ -2,15 +2,9 @@ import { Message, VisualType, MathResponseSchema } from '../types';
 import { MathEngine } from './MathEngine';
 
 const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
-const modelId = env?.GROQ_MODEL || env?.VITE_GROQ_MODEL || 'llama-3.3-70b-versatile';
+const modelId = 'qwen/qwen3-32b';
 const visionModelId = env?.GROQ_VISION_MODEL || env?.VITE_GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
-const primaryGroqApiKey = env?.GROQ_API_KEY;
-const groqApiKey =
-  primaryGroqApiKey ||
-  env?.GROQAPI_KEY ||
-  env?.VITE_GROQ_API_KEY ||
-  env?.API_KEY ||
-  env?.GEMINI_API_KEY;
+const groqApiKey = env?.GROQ_API_KEY;
 const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
 const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
 const groqDefaultMaxTokens = isFreePlanMode ? 1536 : 2048;
@@ -25,29 +19,6 @@ const groqHistoryLimit = (() => {
   return Number.isFinite(parsed) && parsed >= 0 ? Math.min(Math.floor(parsed), 20) : 6;
 })();
 const groqMaxRetries = isFreePlanMode ? 1 : 3;
-const groqSafeThreshold = (() => {
-  const raw = env?.GROQ_SAFE_THRESHOLD || env?.VITE_GROQ_SAFE_THRESHOLD;
-  const parsed = raw ? Number(raw) : 0.1;
-  return Number.isFinite(parsed) && parsed > 0 && parsed < 1 ? parsed : 0.1;
-})();
-const qwenFallbackModels = (() => {
-  const raw = env?.GROQ_QWEN_MODELS || env?.VITE_GROQ_QWEN_MODELS;
-  const models = raw ? raw.split(',').map(model => model.trim()).filter(Boolean) : ['qwen/qwen3-32b'];
-  return [...new Set(models)];
-})();
-const groqModelRotation = [
-  modelId,
-  ...qwenFallbackModels,
-  env?.GROQ_FALLBACK_MODEL || env?.VITE_GROQ_FALLBACK_MODEL || 'llama-3.1-8b-instant'
-].filter((model, index, list) => Boolean(model) && list.indexOf(model) === index);
-
-const groqRateLimitTelemetry = new Map<string, {
-  limitRequests?: number;
-  remainingRequests?: number;
-  limitTokens?: number;
-  remainingTokens?: number;
-  updatedAt: number;
-}>();
 
 const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
@@ -103,69 +74,6 @@ const calculateBackoffDelay = (attempt: number, retryAfterMs?: number) => {
     return Math.max(retryAfterMs, exponentialDelay) + jitter;
   }
   return exponentialDelay + jitter;
-};
-
-type GroqRateLimitTelemetry = {
-  limitRequests?: number;
-  remainingRequests?: number;
-  limitTokens?: number;
-  remainingTokens?: number;
-  updatedAt: number;
-};
-
-const parseRateLimitHeader = (value: string | null) => {
-  if (!value) return undefined;
-  const parsed = Number(value.replace(/,/g, '').trim());
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
-};
-
-const getTelemetryPressure = (telemetry?: GroqRateLimitTelemetry) => {
-  if (!telemetry) return undefined;
-  const requestRatio =
-    telemetry.limitRequests && telemetry.limitRequests > 0 && telemetry.remainingRequests !== undefined
-      ? telemetry.remainingRequests / telemetry.limitRequests
-      : undefined;
-  const tokenRatio =
-    telemetry.limitTokens && telemetry.limitTokens > 0 && telemetry.remainingTokens !== undefined
-      ? telemetry.remainingTokens / telemetry.limitTokens
-      : undefined;
-
-  const ratios = [requestRatio, tokenRatio].filter((value): value is number => typeof value === 'number');
-  if (!ratios.length) return undefined;
-  return Math.min(...ratios);
-};
-
-const isTelemetryLow = (telemetry?: GroqRateLimitTelemetry) => {
-  const pressure = getTelemetryPressure(telemetry);
-  return pressure !== undefined && pressure <= groqSafeThreshold;
-};
-
-const captureGroqTelemetry = (model: string, response: Response) => {
-  const telemetry: GroqRateLimitTelemetry = {
-    limitRequests: parseRateLimitHeader(response.headers.get('x-ratelimit-limit-requests')),
-    remainingRequests: parseRateLimitHeader(response.headers.get('x-ratelimit-remaining-requests')),
-    limitTokens: parseRateLimitHeader(response.headers.get('x-ratelimit-limit-tokens')),
-    remainingTokens: parseRateLimitHeader(response.headers.get('x-ratelimit-remaining-tokens')),
-    updatedAt: Date.now()
-  };
-
-  groqRateLimitTelemetry.set(model, telemetry);
-  return telemetry;
-};
-
-const selectGroqModel = (preferredModel: string) => {
-  const preferredIndex = groqModelRotation.indexOf(preferredModel);
-  if (preferredIndex < 0) return preferredModel;
-
-  for (let index = preferredIndex; index < groqModelRotation.length; index += 1) {
-    const candidate = groqModelRotation[index];
-    const telemetry = groqRateLimitTelemetry.get(candidate);
-    if (!isTelemetryLow(telemetry)) {
-      return candidate;
-    }
-  }
-
-  return groqModelRotation[groqModelRotation.length - 1] ?? preferredModel;
 };
 
 const buildContentParts = (text: string, image?: string) => {
@@ -366,10 +274,7 @@ export const sendMessageToGemini = async (
   modelOverride?: string
 ): Promise<Message> => {
   const effectiveRetries = Math.max(0, Math.min(retries, groqMaxRetries));
-  const requestedModel = modelOverride ?? modelId;
-  const modelToUse = selectGroqModel(requestedModel);
-  const currentFallbackIndex = groqModelRotation.indexOf(modelToUse);
-  const nextFallbackModel = currentFallbackIndex >= 0 ? groqModelRotation[currentFallbackIndex + 1] : undefined;
+  const modelToUse = modelId;
   try {
     if (!groqApiKey) {
       throw new Error('Missing GROQ_API_KEY');
@@ -404,28 +309,10 @@ export const sendMessageToGemini = async (
       })
     });
 
-    const responseTelemetry = captureGroqTelemetry(modelToUse, response);
-    if (response.ok && isTelemetryLow(responseTelemetry)) {
-      const nextModel = nextFallbackModel;
-      if (nextModel) {
-        console.log(`Groq budget for ${modelToUse} is below the safe threshold; rotating next request to ${nextModel}.`);
-      }
-    }
-
     if (!response.ok) {
       const errorText = await response.text().catch(() => '');
       const retryAfterMs = getRetryAfterDelayMs(response);
       const error = { status: response.status, message: errorText };
-
-      if (response.status === 429) {
-        const fallbackModel = nextFallbackModel;
-        if (fallbackModel && fallbackModel !== modelToUse) {
-          const fallbackDelay = calculateBackoffDelay(groqMaxRetries - effectiveRetries, retryAfterMs);
-          console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModel} in ${fallbackDelay}ms...`);
-          await sleep(fallbackDelay);
-          return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModel);
-        }
-      }
 
       if (isRetryableStatus(response.status) && effectiveRetries > 0) {
         const attempt = groqMaxRetries - effectiveRetries;
@@ -470,16 +357,6 @@ export const sendMessageToGemini = async (
       errorMessage.includes('No response from Groq');
 
     if (isRateLimitLike(error, status) || isJsonOrTruncationError) {
-      if (isRateLimitLike(error, status)) {
-        const fallbackModel = nextFallbackModel;
-        if (fallbackModel && fallbackModel !== modelToUse) {
-          const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
-          console.log(`Groq rate limit hit on ${modelToUse}. Falling back to ${fallbackModel} in ${delay}ms...`);
-          await sleep(delay);
-          return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries, fallbackModel);
-        }
-      }
-
       if (effectiveRetries > 0) {
         const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
         const reason = isJsonOrTruncationError ? 'response parsing' : `rate limit ${status ?? ''}`.trim();
