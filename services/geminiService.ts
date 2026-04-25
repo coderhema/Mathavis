@@ -2,23 +2,21 @@ import { Message, VisualType, MathResponseSchema } from '../types';
 import { MathEngine } from './MathEngine';
 
 const env = (import.meta as any).env as Record<string, string | undefined> | undefined;
-const modelId = 'qwen/qwen3-32b';
-const visionModelId = env?.GROQ_VISION_MODEL || env?.VITE_GROQ_VISION_MODEL || 'llama-3.2-90b-vision-preview';
-const groqApiKey = env?.GROQ_API_KEY;
-const groqApiUrl = 'https://api.groq.com/openai/v1/chat/completions';
-const isFreePlanMode = env?.GROQ_FREE_PLAN === 'true' || env?.VITE_GROQ_FREE_PLAN === 'true';
-const groqDefaultMaxTokens = isFreePlanMode ? 1536 : 2048;
-const groqMaxTokens = (() => {
-  const raw = env?.GROQ_MAX_TOKENS || env?.VITE_GROQ_MAX_TOKENS;
-  const parsed = raw ? Number(raw) : groqDefaultMaxTokens;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : groqDefaultMaxTokens;
+const modelId = 'meta/llama-3.1-8b-instruct';
+const nvidiaApiKey = import.meta.env.NVIDIA_API_KEY as string | undefined;
+const nvidiaApiUrl = 'https://integrate.api.nvidia.com/v1/chat/completions';
+const nvidiaDefaultMaxTokens = 2048;
+const nvidiaMaxTokens = (() => {
+  const raw = env?.NVIDIA_MAX_TOKENS;
+  const parsed = raw ? Number(raw) : nvidiaDefaultMaxTokens;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : nvidiaDefaultMaxTokens;
 })();
-const groqHistoryLimit = (() => {
-  const raw = env?.GROQ_HISTORY_LIMIT || env?.VITE_GROQ_HISTORY_LIMIT;
+const nvidiaHistoryLimit = (() => {
+  const raw = env?.NVIDIA_HISTORY_LIMIT;
   const parsed = raw ? Number(raw) : 6;
   return Number.isFinite(parsed) && parsed >= 0 ? Math.min(Math.floor(parsed), 20) : 6;
 })();
-const groqMaxRetries = isFreePlanMode ? 1 : 3;
+const nvidiaMaxRetries = 3;
 
 const validVisualTypes = new Set(Object.values(VisualType));
 const validGraphModes = new Set(['network', 'flowchart', 'tree']);
@@ -273,14 +271,14 @@ export const sendMessageToGemini = async (
   retries = 3,
   modelOverride?: string
 ): Promise<Message> => {
-  const effectiveRetries = Math.max(0, Math.min(retries, groqMaxRetries));
-  const modelToUse = modelId;
+  const effectiveRetries = Math.max(0, Math.min(retries, nvidiaMaxRetries));
+  const modelToUse = modelOverride ?? modelId;
   try {
-    if (!groqApiKey) {
-      throw new Error('Missing GROQ_API_KEY');
+    if (!nvidiaApiKey) {
+      throw new Error('Missing NVIDIA_API_KEY');
     }
 
-    const recentHistory = groqHistoryLimit > 0 ? history.slice(-groqHistoryLimit) : [];
+    const recentHistory = nvidiaHistoryLimit > 0 ? history.slice(-nvidiaHistoryLimit) : [];
     const messages = [
       { role: 'system', content: systemInstruction },
       ...recentHistory.map(msg => ({
@@ -293,18 +291,18 @@ export const sendMessageToGemini = async (
       }
     ];
 
-    const response = await fetch(groqApiUrl, {
+    const response = await fetch(nvidiaApiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${groqApiKey}`
+        Authorization: `Bearer ${nvidiaApiKey}`
       },
       body: JSON.stringify({
-        model: imageBase64 ? visionModelId : modelToUse,
+        model: modelToUse,
         messages,
         temperature: 0.15,
         top_p: 0.95,
-        max_tokens: groqMaxTokens,
+        max_tokens: nvidiaMaxTokens,
         response_format: { type: 'json_object' }
       })
     });
@@ -315,9 +313,9 @@ export const sendMessageToGemini = async (
       const error = { status: response.status, message: errorText };
 
       if (isRetryableStatus(response.status) && effectiveRetries > 0) {
-        const attempt = groqMaxRetries - effectiveRetries;
+        const attempt = nvidiaMaxRetries - effectiveRetries;
         const delay = calculateBackoffDelay(attempt, retryAfterMs);
-        console.log(`Groq request hit ${response.status} on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
+        console.log(`NVIDIA request hit ${response.status} on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
         return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse);
       }
@@ -327,12 +325,12 @@ export const sendMessageToGemini = async (
     const payload = await response.json();
     const finishReason = payload?.choices?.[0]?.finish_reason;
     if (finishReason === 'length') {
-      throw new Error('Groq response was truncated before completing JSON');
+      throw new Error('NVIDIA response was truncated before completing JSON');
     }
 
     const responseText = extractContentText(payload?.choices?.[0]?.message?.content);
     if (!responseText) {
-      throw new Error('No response from Groq');
+      throw new Error('No response from NVIDIA');
     }
 
     const data = normalizeResponse(parseJsonResponse(responseText));
@@ -354,13 +352,13 @@ export const sendMessageToGemini = async (
       errorMessage.includes('JSON') ||
       errorMessage.includes('Unexpected') ||
       errorMessage.includes('truncated') ||
-      errorMessage.includes('No response from Groq');
+      errorMessage.includes('No response from NVIDIA');
 
     if (isRateLimitLike(error, status) || isJsonOrTruncationError) {
       if (effectiveRetries > 0) {
-        const delay = calculateBackoffDelay(groqMaxRetries - effectiveRetries);
+        const delay = calculateBackoffDelay(nvidiaMaxRetries - effectiveRetries);
         const reason = isJsonOrTruncationError ? 'response parsing' : `rate limit ${status ?? ''}`.trim();
-        console.log(`Groq ${reason} hit on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
+        console.log(`NVIDIA ${reason} hit on ${modelToUse}. Retrying in ${delay}ms... (${effectiveRetries} retries left)`);
         await sleep(delay);
         return sendMessageToGemini(history, userMessage, imageBase64, effectiveRetries - 1, modelToUse);
       }
@@ -369,7 +367,7 @@ export const sendMessageToGemini = async (
         return {
           id: Date.now().toString(),
           role: 'model',
-          text: "Squawk! I got a partial response from Groq and couldn't finish the JSON. Please try again in a moment.",
+          text: "Squawk! I got a partial response from NVIDIA and couldn't finish the JSON. Please try again in a moment.",
           visual: { type: VisualType.NONE },
           suggestedActions: ['Try again', 'Ask for a shorter explanation'],
           timestamp: Date.now()
@@ -379,14 +377,14 @@ export const sendMessageToGemini = async (
       return {
         id: Date.now().toString(),
         role: 'model',
-        text: "Squawk! Groq is busy right now. Please wait a minute and try again!",
+        text: "Squawk! NVIDIA is busy right now. Please wait a minute and try again!",
         visual: { type: VisualType.NONE },
         suggestedActions: ['Try again in a minute', 'Check my progress'],
         timestamp: Date.now()
       };
     }
 
-    console.error('Groq API Error:', error);
+    console.error('NVIDIA API Error:', error);
 
     return {
       id: Date.now().toString(),
