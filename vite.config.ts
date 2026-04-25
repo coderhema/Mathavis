@@ -4,8 +4,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
-    const groqApiKey = env.GROQ_API_KEY || env.GROQAPI_KEY || env.VITE_GROQ_API_KEY || '';
-    const groqModel = env.GROQ_MODEL || env.VITE_GROQ_MODEL || '';
+    const googleSheetLink = env.GOOGLE_SHEET_LINK || '';
+    const nvidiaApiKey = env.NVIDIA_API_KEY || '';
     const geminiApiKey = env.GEMINI_API_KEY || env.GEMINIAPI_KEY || env.VITE_GEMINI_API_KEY || env.API_KEY || '';
 
     return {
@@ -17,16 +17,18 @@ export default defineConfig(({ mode }) => {
       define: {
         'process.env.API_KEY': JSON.stringify(geminiApiKey),
         'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
-        'process.env.GROQ_API_KEY': JSON.stringify(groqApiKey),
-        'process.env.GROQAPI_KEY': JSON.stringify(groqApiKey),
-        'process.env.GROQ_MODEL': JSON.stringify(groqModel),
-        'process.env.VITE_GROQ_API_KEY': JSON.stringify(groqApiKey),
-        'process.env.VITE_GROQ_MODEL': JSON.stringify(groqModel),
-        'import.meta.env.GROQ_API_KEY': JSON.stringify(groqApiKey),
-        'import.meta.env.GROQAPI_KEY': JSON.stringify(groqApiKey),
-        'import.meta.env.GROQ_MODEL': JSON.stringify(groqModel),
-        'import.meta.env.VITE_GROQ_API_KEY': JSON.stringify(groqApiKey),
-        'import.meta.env.VITE_GROQ_MODEL': JSON.stringify(groqModel),
+        'process.env.GOOGLE_SHEET_LINK': JSON.stringify(googleSheetLink),
+
+        'process.env.NVIDIA_API_KEY': JSON.stringify(nvidiaApiKey),
+
+        'process.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
+        'process.env.GEMINIAPI_KEY': JSON.stringify(geminiApiKey),
+        'process.env.VITE_GEMINI_API_KEY': JSON.stringify(geminiApiKey),
+        'process.env.API_KEY': JSON.stringify(geminiApiKey),
+        'import.meta.env.GOOGLE_SHEET_LINK': JSON.stringify(googleSheetLink),
+
+        'import.meta.env.NVIDIA_API_KEY': JSON.stringify(nvidiaApiKey),
+
         'import.meta.env.GEMINI_API_KEY': JSON.stringify(geminiApiKey),
         'import.meta.env.API_KEY': JSON.stringify(geminiApiKey),
       },
