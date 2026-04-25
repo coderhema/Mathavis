@@ -5,7 +5,7 @@ import TopicPath from './components/TopicPath';
 import Whiteboard from './components/Whiteboard';
 import Library from './components/Library';
 import AuthPage from './components/AuthPage';
-import WaitlistPage from './components/WaitlistPage';
+import Waitlist from './components/Waitlist';
 import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
@@ -170,7 +170,7 @@ const App: React.FC = () => {
   if (pathname === '/waitlist') {
     return (
       <>
-        <WaitlistPage />
+        <Waitlist />
         <Analytics />
       </>
     );
