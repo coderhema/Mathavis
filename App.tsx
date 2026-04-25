@@ -9,7 +9,7 @@ import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
 import { Topic, View } from './types';
-import { Menu, X, Sun, Moon, History, Plus } from 'lucide-react';
+import { Menu, X, Sun, Moon, History, Plus, Map, BookOpen, Book, Trophy, ShoppingBag } from 'lucide-react';
 import { soundService } from './services/soundService';
 
 const DEFAULT_TOPICS: Topic[] = [
@@ -20,6 +20,23 @@ const DEFAULT_TOPICS: Topic[] = [
 ];
 
 const TOPICS_STORAGE_KEY = 'mathlingo_persistent_topics';
+
+const NAV_ITEMS: Array<{ view: Exclude<View, 'auth'>; label: string; icon: React.ElementType }> = [
+  { view: 'path', label: 'Learning Path', icon: Map },
+  { view: 'practice', label: 'Whiteboard', icon: BookOpen },
+  { view: 'library', label: 'Library', icon: Book },
+  { view: 'leaderboard', label: 'Leaderboard', icon: Trophy },
+  { view: 'shop', label: 'Shop', icon: ShoppingBag },
+];
+
+const getViewLabel = (view: View, selectedTopic: Topic | null) => {
+  if (view === 'path') return 'Learning Path';
+  if (view === 'practice') return selectedTopic?.name ?? 'Whiteboard';
+  if (view === 'library') return 'Library';
+  if (view === 'leaderboard') return 'Leaderboard';
+  if (view === 'shop') return 'Shop';
+  return 'MathLingo';
+};
 
 interface UserStats {
     xp: number;
@@ -160,19 +177,24 @@ const App: React.FC = () => {
                         <X size={24} />
                     </button>
                 </div>
-                <nav className="space-y-4">
-                     {['path', 'practice', 'leaderboard', 'shop'].map((v) => (
+                <nav className="space-y-2">
+                     {NAV_ITEMS.map(({ view, label, icon: Icon }) => (
                          <button 
-                            key={v}
-                            onClick={() => handleNavChange(v as View)}
-                            className="block w-full text-left p-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 capitalize transition-colors"
+                            key={view}
+                            onClick={() => handleNavChange(view)}
+                            className={"flex items-center gap-4 w-full p-3 rounded-2xl transition-all border-2 uppercase text-sm font-extrabold tracking-widest " + (
+                              currentView === view
+                                ? "bg-blue-50 dark:bg-brand-blue/10 text-brand-blue border-brand-blue shadow-sm"
+                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+                            )}
                         >
-                            {v === 'path' ? 'Learning Path' : v}
+                            <Icon size={24} />
+                            <span>{label}</span>
                         </button>
                      ))}
                      <button 
                         onClick={() => { soundService.playBoop(); handleOpenHistory(); setIsMobileMenuOpen(false); }}
-                        className="flex items-center gap-3 w-full text-left p-3 rounded-xl font-bold text-brand-blue hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="flex items-center gap-4 w-full p-3 rounded-2xl transition-all border-2 uppercase text-sm font-extrabold tracking-widest text-brand-blue border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
                     >
                         <History size={20} />
                         <span>Session History</span>
@@ -209,7 +231,7 @@ const App: React.FC = () => {
                 <Menu className="text-slate-500 dark:text-slate-400" />
             </button>
             <span className="font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-sm">
-                {currentView === 'path' ? 'Learning Path' : (selectedTopic && currentView === 'practice' ? selectedTopic.name : currentView)}
+                {getViewLabel(currentView, selectedTopic)}
             </span>
             <div className="flex items-center gap-4">
               <button onClick={toggleDarkMode} className="text-slate-500 dark:text-slate-400">

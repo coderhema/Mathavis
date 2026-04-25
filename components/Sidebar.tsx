@@ -62,7 +62,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
       </div>
 
       <nav className="flex-1 space-y-2">
-        <NavButton view="path" icon={Map} label="Learn Path" />
+        <NavButton view="path" icon={Map} label="Learning Path" />
         <NavButton view="practice" icon={BookOpen} label="Whiteboard" />
         <NavButton view="library" icon={Book} label="Library" />
         <NavButton view="leaderboard" icon={Trophy} label="Leaderboard" />
