@@ -44,7 +44,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
   };
 
   return (
-    <div className="hidden md:flex flex-col w-64 lg:w-72 xl:w-80 shrink-0 bg-white dark:bg-slate-900 border-r-2 border-slate-200 dark:border-slate-800 p-5 lg:p-6 h-full sticky top-0 z-30 overflow-y-auto transition-colors duration-300">
+    <div className="hidden md:flex flex-col w-64 lg:w-72 xl:w-80 shrink-0 bg-white dark:bg-slate-900 border-r-2 border-slate-200 dark:border-slate-800 p-5 lg:p-6 h-dvh sticky top-0 z-30 overflow-y-auto transition-colors duration-300">
       <div className="mb-8 px-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <VoxelChicken size={32} />

@@ -280,29 +280,29 @@ const Library: React.FC = () => {
   }, [selectedTopic, params]);
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-slate-50 dark:bg-slate-950 overflow-hidden overflow-x-hidden transition-colors duration-300">
+    <div className="flex-1 min-h-0 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
       {/* Header */}
-      <div className="px-4 py-6 sm:px-6 sm:py-8 lg:p-8 bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-sm z-10">
+      <div className="p-8 bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-sm z-10">
         <div className="max-w-6xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 min-w-0">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h1 className="text-3xl font-extrabold text-slate-700 dark:text-slate-200 tracking-tight mb-2">Visual Library</h1>
               <p className="text-slate-400 dark:text-slate-500 font-bold">Curated interactive explanations for core math concepts</p>
             </div>
             
-            <div className="relative group w-full md:w-80 max-w-full min-w-0">
+            <div className="relative group">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-blue transition-colors" size={20} />
               <input 
                 type="text" 
                 placeholder="Search topics..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-6 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-brand-blue outline-none rounded-2xl w-full min-w-0 font-bold text-slate-600 dark:text-slate-300 transition-all"
+                className="pl-12 pr-6 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-brand-blue outline-none rounded-2xl w-full md:w-80 font-bold text-slate-600 dark:text-slate-300 transition-all"
               />
             </div>
           </div>
 
-          <div className="flex gap-2 mt-8 overflow-x-auto pb-2 scrollbar-hide max-w-full">
+          <div className="flex gap-2 mt-8 overflow-x-auto pb-2 scrollbar-hide">
             {categories.map(cat => (
               <button
                 key={cat}
@@ -321,13 +321,13 @@ const Library: React.FC = () => {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 sm:p-6 lg:p-8 overflow-x-hidden scrollbar-hide">
+      <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
         <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTopics.map(topic => (
             <div 
               key={topic.id}
               onClick={() => handleTopicClick(topic)}
-              className="group bg-white dark:bg-slate-900 rounded-[32px] border-4 border-slate-200 dark:border-slate-800 p-5 sm:p-6 shadow-sm hover:shadow-xl hover:border-brand-blue transition-all cursor-pointer flex flex-col min-w-0 animate-in fade-in slide-in-from-bottom-4 duration-500"
+              className="group bg-white dark:bg-slate-900 rounded-[32px] border-4 border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl hover:border-brand-blue transition-all cursor-pointer flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500"
             >
               <div className="flex items-center justify-between mb-4">
                 <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
@@ -368,11 +368,11 @@ const Library: React.FC = () => {
 
       {/* Detail Modal */}
       {selectedTopic && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-x-hidden animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[calc(100dvh-1rem)] sm:h-[calc(100dvh-2rem)] sm:max-h-[95vh] md:h-[90vh] rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden min-w-0 animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[95dvh] max-h-[95dvh] rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
             {/* Modal Header */}
-            <div className="p-4 sm:p-8 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 shrink-0 min-w-0">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="p-4 sm:p-8 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-blue/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-blue">
                   <Book size={20} className="sm:w-6 sm:h-6" />
                 </div>
@@ -390,11 +390,11 @@ const Library: React.FC = () => {
             </div>
 
             {/* Modal Content */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 overflow-x-hidden scrollbar-hide">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 h-full min-w-0">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-hide">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 h-full">
                 {/* Visual Area */}
-                <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 rounded-[24px] sm:rounded-[32px] border-4 border-slate-100 dark:border-slate-800 p-2 sm:p-4 aspect-square lg:aspect-auto lg:h-full relative overflow-hidden flex items-center justify-center min-w-0">
-                  <div className="w-full h-full relative min-w-0">
+                <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 rounded-[24px] sm:rounded-[32px] border-4 border-slate-100 dark:border-slate-800 p-2 sm:p-4 aspect-square lg:aspect-auto lg:h-full relative overflow-hidden flex items-center justify-center">
+                  <div className="w-full h-full relative">
                     {liveVisual?.type === VisualType.PLOT && liveVisual.plotData && <PlotVis data={liveVisual.plotData} />}
                     {liveVisual?.type === VisualType.PLOT3D && liveVisual.plot3DData && <Plot3DVis data={liveVisual.plot3DData} />}
                     {liveVisual?.type === VisualType.GRAPH && liveVisual.graphData && <GraphVis data={liveVisual.graphData} />}
@@ -408,17 +408,17 @@ const Library: React.FC = () => {
                 </div>
 
                 {/* Controls & Explanation Area */}
-                <div className="lg:col-span-5 flex flex-col h-full min-w-0">
+                <div className="lg:col-span-5 flex flex-col h-full">
                   <div className="mb-6 sm:mb-8">
                     <h4 className="text-[10px] sm:text-xs font-black text-brand-blue uppercase tracking-[0.2em] mb-3 sm:mb-4">The Concept</h4>
-                    <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-bold leading-relaxed break-words">
+                    <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-bold leading-relaxed">
                       {selectedTopic.explanation}
                     </p>
                   </div>
 
                   {/* Interactive Controls */}
                   {selectedTopic.controls && selectedTopic.controls.length > 0 && (
-                    <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[24px] sm:rounded-[32px] border-2 border-slate-100 dark:border-slate-800 min-w-0">
+                    <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[24px] sm:rounded-[32px] border-2 border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-2 mb-4 sm:mb-6">
                         <Settings2 size={16} className="text-brand-blue" />
                         <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Interactive Controls</h4>

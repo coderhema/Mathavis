@@ -224,7 +224,7 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full relative isolate">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col relative isolate overflow-hidden">
         {/* Mobile Header */}
         <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 sm:px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
             <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>

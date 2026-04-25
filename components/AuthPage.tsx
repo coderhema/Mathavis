@@ -21,7 +21,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center font-sans transition-colors duration-300">
+    <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center font-sans transition-colors duration-300">
       <div className="absolute top-6 right-6">
         {toggleDarkMode && (
           <button 
