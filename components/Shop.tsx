@@ -27,7 +27,7 @@ const Shop: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
+    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
             <div className="text-center md:text-left">
@@ -35,7 +35,7 @@ const Shop: React.FC = () => {
                 <p className="text-slate-400 dark:text-slate-500 font-bold">Spend your hard-earned gems on power-ups</p>
             </div>
             
-            <div className="bg-white dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-800 px-6 py-3 rounded-3xl shadow-sm flex items-center gap-3">
+            <div className="bg-white dark:bg-slate-900 border-4 border-slate-200 dark:border-slate-800 px-6 py-3 rounded-3xl shadow-sm flex items-center gap-3 w-full md:w-auto justify-center">
                 <div className="w-10 h-10 bg-brand-yellow/20 rounded-xl flex items-center justify-center text-brand-yellow">
                     <Coins size={24} fill="currentColor" />
                 </div>

@@ -11,7 +11,7 @@ const Leaderboard: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
+    <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 mb-3 px-4 py-2 rounded-full bg-brand-yellow/10 text-brand-yellow font-black uppercase tracking-[0.2em] text-[10px]">
@@ -26,7 +26,7 @@ const Leaderboard: React.FC = () => {
           {users.map((user) => (
             <div
               key={user.rank}
-              className={`flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border-2 transition-all hover:scale-[1.01] ${user.isMe ? 'bg-white dark:bg-slate-900 border-brand-green shadow-md' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}
+              className={`flex w-full min-w-0 flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl border-2 transition-all hover:scale-[1.01] ${user.isMe ? 'bg-white dark:bg-slate-900 border-brand-green shadow-md' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}
             >
               <div className="w-12 shrink-0 text-center font-black text-slate-400 dark:text-slate-600 text-lg">
                 {user.rank}

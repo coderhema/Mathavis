@@ -415,7 +415,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
   const currentSuggestedActions = [...messages].reverse().find(m => m.role === 'model')?.suggestedActions || [];
 
   return (
-    <div className="flex min-h-0 flex-col h-full bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-hidden transition-colors duration-300">
+    <div className="flex min-h-0 flex-col h-full w-full min-w-0 bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-x-hidden transition-colors duration-300">
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
             <div 
@@ -423,7 +423,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 onClick={() => setIsHistoryOpen(false)}
             >
                 <div 
-                    className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-80 sm:w-80 bg-white dark:bg-slate-900 shadow-2xl p-4 sm:p-6 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto animate-in slide-in-from-left duration-300"
+                    className="absolute left-0 top-0 bottom-0 w-[calc(100vw-1rem)] max-w-80 sm:w-80 bg-white dark:bg-slate-900 shadow-2xl p-4 sm:p-6 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto overflow-x-hidden animate-in slide-in-from-left duration-300"
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex items-center justify-between mb-8">
@@ -517,7 +517,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         )}
 
         {/* Toolbar Header */}
-        <div className="sticky top-0 z-[80] px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
+        <div className="sticky top-0 z-[80] w-full min-w-0 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
                 {onBackToMenu && (
                     <button 
@@ -569,10 +569,10 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         </div>
 
         {/* Chat Area */}
-        <div className={`relative z-0 flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 pb-44 sm:pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
-            <div className="max-w-4xl mx-auto space-y-8">
+        <div className={`relative z-0 flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-3 sm:p-4 pb-44 sm:pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
+            <div className="max-w-4xl mx-auto w-full min-w-0 space-y-8">
                 {messages.map((msg, index) => (
-                    <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
+                    <div key={msg.id} className={`flex w-full min-w-0 flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
                         <div className={`flex items-end gap-2 mb-2 px-1 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
                             {msg.role === 'model' && (
                                 <div className="mb-[-10px] z-10">
@@ -588,7 +588,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                             <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{msg.role === 'user' ? 'You' : 'Prof. Cluck'}</span>
                         </div>
 
-                        <div className={`max-w-[92%] md:max-w-[85%] p-4 sm:p-5 rounded-3xl shadow-sm text-base sm:text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-sm ml-2 sm:ml-4'}`}>
+                        <div className={`w-full max-w-full sm:max-w-[85%] min-w-0 break-words p-4 sm:p-5 rounded-3xl shadow-sm text-base sm:text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-sm ml-0 sm:ml-4'}`}>
                             {msg.image && (
                                 <div className="mb-4 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg">
                                     <img src={msg.image} alt="Submitted math" className="w-full h-auto object-contain max-h-[300px]" />
@@ -598,7 +598,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         </div>
 
                         {msg.visual && msg.visual.type !== VisualType.NONE && (
-                            <div className="mt-4 ml-2 sm:ml-4 w-full max-w-2xl bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
+                            <div className="mt-4 ml-0 sm:ml-4 w-full max-w-full sm:max-w-2xl min-w-0 bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
                                 <button 
                                     onClick={() => { soundService.playBoop(); setExpandedArtifact(msg); }}
                                     className="absolute top-4 right-4 z-20 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
@@ -667,7 +667,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
             <div className="h-12 bg-gradient-to-t from-slate-100 dark:from-slate-950 to-transparent pointer-events-none" />
             
             {capturedImage && (
-                <div className="max-w-4xl mx-auto w-full px-4 mb-2 animate-in slide-in-from-bottom-2">
+                <div className="max-w-4xl mx-auto w-full min-w-0 px-4 mb-2 animate-in slide-in-from-bottom-2">
                     <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border-2 border-brand-blue flex items-center gap-3 shadow-lg">
                         <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-slate-100 relative group flex items-center justify-center bg-slate-50 dark:bg-slate-800">
                             {capturedImage.startsWith('data:application/pdf') ? (
@@ -692,8 +692,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 </div>
             )}
 
-            <div className="bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-2 pt-2 px-4">
-                <div className="max-w-4xl mx-auto flex flex-col gap-3">
+            <div className="bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-2 pt-2 px-4 overflow-x-hidden">
+                <div className="max-w-4xl mx-auto w-full min-w-0 flex flex-col gap-3">
                     {!isLoading && !showKeyboard && currentSuggestedActions.length > 0 && (
                         <div className="flex flex-col gap-2 mb-2">
                             <div className="flex items-center justify-between px-2">
@@ -753,7 +753,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         {/* Artifact Expansion Modal */}
         {expandedArtifact && (
             <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-12 animate-in fade-in duration-300">
-                <div className="bg-white dark:bg-slate-900 w-full h-full max-w-6xl rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-y-auto scrollbar-hide relative">
+                <div className="bg-white dark:bg-slate-900 w-full h-full max-w-6xl rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-y-auto overflow-x-hidden scrollbar-hide relative">
                     <button 
                         onClick={() => { soundService.playBoop(); setExpandedArtifact(null); }}
                         className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] p-3 sm:p-4 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-2xl text-slate-500 hover:text-brand-red transition-all shadow-lg"
@@ -805,7 +805,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         )}
                         {expandedArtifact.visual?.type === VisualType.GRAPH && expandedArtifact.visual.graphData && <GraphVis data={expandedArtifact.visual.graphData} />}
                         {expandedArtifact.visual?.type === VisualType.FLOWCHART && expandedArtifact.visual.flowchartData && <FlowchartVis data={expandedArtifact.visual.flowchartData} />}
-                        {expandedArtifact.visual?.type === VisualType.MATRIX && expandedArtifact.visual.matrixData && <div className="h-full flex items-center justify-center scale-110 sm:scale-150"><MatrixVis data={expandedArtifact.visual.matrixData} /></div>}
+                        {expandedArtifact.visual?.type === VisualType.MATRIX && expandedArtifact.visual.matrixData && <div className="h-full flex items-center justify-center scale-100 sm:scale-125 md:scale-150"><MatrixVis data={expandedArtifact.visual.matrixData} /></div>}
                         {expandedArtifact.visual?.type === VisualType.VECTOR_FIELD && expandedArtifact.visual.vectorFieldData && <VectorFieldVis data={expandedArtifact.visual.vectorFieldData} />}
                         {expandedArtifact.visual?.type === VisualType.UNIT_CIRCLE && expandedArtifact.visual.unitCircleData && <UnitCircleVis data={expandedArtifact.visual.unitCircleData} />}
                         {expandedArtifact.visual?.type === VisualType.COMPLEX_PLANE && expandedArtifact.visual.complexPlaneData && <ComplexPlaneVis data={expandedArtifact.visual.complexPlaneData} />}
