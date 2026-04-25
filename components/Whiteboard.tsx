@@ -415,7 +415,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
   const currentSuggestedActions = [...messages].reverse().find(m => m.role === 'model')?.suggestedActions || [];
 
   return (
-    <div className="flex flex-col h-full bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-hidden transition-colors duration-300">
+    <div className="flex min-h-0 flex-col h-full bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-hidden transition-colors duration-300">
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
             <div 
@@ -423,7 +423,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 onClick={() => setIsHistoryOpen(false)}
             >
                 <div 
-                    className="absolute left-0 top-0 bottom-0 w-80 bg-white dark:bg-slate-900 shadow-2xl p-6 border-r border-slate-200 dark:border-slate-800 flex flex-col animate-in slide-in-from-left duration-300"
+                    className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-80 sm:w-80 bg-white dark:bg-slate-900 shadow-2xl p-4 sm:p-6 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto animate-in slide-in-from-left duration-300"
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex items-center justify-between mb-8">
@@ -517,8 +517,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         )}
 
         {/* Toolbar Header */}
-        <div className="sticky top-0 z-[80] px-6 py-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
-            <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-[80] px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
                 {onBackToMenu && (
                     <button 
                         onClick={() => { soundService.playBoop(); onBackToMenu(); }}
@@ -569,7 +569,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         </div>
 
         {/* Chat Area */}
-        <div className={`relative z-0 flex-1 overflow-y-auto p-4 pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
+        <div className={`relative z-0 flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 pb-44 sm:pb-48 scrollbar-hide transition-all duration-300 ${showKeyboard ? 'pb-[320px]' : ''}`}>
             <div className="max-w-4xl mx-auto space-y-8">
                 {messages.map((msg, index) => (
                     <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2`}>
@@ -588,7 +588,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                             <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{msg.role === 'user' ? 'You' : 'Prof. Cluck'}</span>
                         </div>
 
-                        <div className={`max-w-[90%] md:max-w-[85%] p-5 rounded-3xl shadow-sm text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-sm ml-4'}`}>
+                        <div className={`max-w-[92%] md:max-w-[85%] p-4 sm:p-5 rounded-3xl shadow-sm text-base sm:text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-sm ml-2 sm:ml-4'}`}>
                             {msg.image && (
                                 <div className="mb-4 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg">
                                     <img src={msg.image} alt="Submitted math" className="w-full h-auto object-contain max-h-[300px]" />
@@ -598,7 +598,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         </div>
 
                         {msg.visual && msg.visual.type !== VisualType.NONE && (
-                            <div className="mt-4 ml-4  w-full max-w-2xl bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
+                            <div className="mt-4 ml-2 sm:ml-4 w-full max-w-2xl bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
                                 <button 
                                     onClick={() => { soundService.playBoop(); setExpandedArtifact(msg); }}
                                     className="absolute top-4 right-4 z-20 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-all hover:scale-110"

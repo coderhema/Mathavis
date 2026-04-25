@@ -27,7 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
             soundService.playBoop();
             setView(view);
         }}
-        className={`flex items-center space-x-4 w-full p-3 rounded-2xl transition-all border-2 uppercase text-sm font-extrabold tracking-widest ${
+        className={`flex items-center gap-3 w-full p-3 rounded-2xl transition-all border-2 uppercase text-xs lg:text-sm font-extrabold tracking-widest ${
           currentView === view 
             ? 'bg-blue-50 dark:bg-brand-blue/10 text-brand-blue border-brand-blue shadow-sm' 
             : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700'
@@ -44,11 +44,11 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
   };
 
   return (
-    <div className="hidden md:flex flex-col w-72 bg-white dark:bg-slate-900 border-r-2 border-slate-200 dark:border-slate-800 p-6 h-full sticky top-0 z-30 transition-colors duration-300">
+    <div className="hidden md:flex flex-col w-64 lg:w-72 xl:w-80 shrink-0 bg-white dark:bg-slate-900 border-r-2 border-slate-200 dark:border-slate-800 p-5 lg:p-6 h-full sticky top-0 z-30 overflow-y-auto transition-colors duration-300">
       <div className="mb-8 px-2 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <VoxelChicken size={32} />
-          <h1 className="text-2xl font-extrabold text-brand-green tracking-tight">MathLingo</h1>
+          <h1 className="text-xl lg:text-2xl font-extrabold text-brand-green tracking-tight truncate">MathLingo</h1>
         </div>
         
         {toggleDarkMode && (
@@ -61,7 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
         )}
       </div>
 
-      <nav className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-2 min-w-0">
         <NavButton view="path" icon={Map} label="Learning Path" />
         <NavButton view="practice" icon={BookOpen} label="Whiteboard" />
         <NavButton view="library" icon={Book} label="Library" />

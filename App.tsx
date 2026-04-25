@@ -166,11 +166,11 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <div className="flex min-h-dvh w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm md:hidden" onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}>
-            <div className="absolute left-0 top-0 bottom-0 w-64 bg-white dark:bg-slate-900 p-4 border-r dark:border-slate-800" onClick={e => e.stopPropagation()}>
+            <div className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-80 bg-white dark:bg-slate-900 p-4 sm:p-6 border-r dark:border-slate-800 overflow-y-auto" onClick={e => e.stopPropagation()}>
                 <div className="flex justify-between items-center mb-8">
                     <h1 className="text-2xl font-extrabold text-brand-green">MathLingo</h1>
                     <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }} className="dark:text-slate-400">
@@ -224,9 +224,9 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full relative isolate">
+      <div className="flex-1 flex flex-col min-w-0 h-full relative isolate">
         {/* Mobile Header */}
-        <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 sm:px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
             <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>
                 <Menu className="text-slate-500 dark:text-slate-400" />
             </button>
@@ -269,7 +269,7 @@ const App: React.FC = () => {
       {/* Shared Topic Prompt Modal */}
       {isTopicPromptOpen && (
           <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-              <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[32px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl p-8 animate-in zoom-in-95 duration-300">
+              <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[32px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 animate-in zoom-in-95 duration-300">
                   <div className="flex items-center gap-4 mb-6">
                       <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center">
                           <Plus size={24} className="text-brand-green" />

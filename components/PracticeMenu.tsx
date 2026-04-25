@@ -76,7 +76,7 @@ interface PracticeMenuProps {
 
 const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300 relative">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300 relative">
       {/* Technical Grid Background */}
       <div className="absolute inset-0 opacity-10 pointer-events-none" 
            style={{ backgroundImage: 'radial-gradient(#3b82f6 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
@@ -88,16 +88,16 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
               <div className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
               <span className="text-brand-blue font-black uppercase tracking-[0.3em] text-[10px]">System Status: Active</span>
             </div>
-            <h2 className="text-4xl font-black text-slate-800 dark:text-white mb-1">Practice Lab</h2>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white mb-1">Practice Lab</h2>
             <p className="text-slate-500 dark:text-slate-400 font-bold">Select a training protocol to begin</p>
           </div>
           
-          <div className="flex gap-4">
-            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
+          <div className="flex flex-wrap gap-3 md:gap-4">
+            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
               <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Global Rank</span>
               <span className="text-lg font-black text-brand-yellow">#1,204</span>
             </div>
-            <div className="bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
+            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
               <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Accuracy</span>
               <span className="text-lg font-black text-brand-green">94%</span>
             </div>
@@ -168,7 +168,7 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
         </div>
 
         {/* Status Footer */}
-        <div className="mt-8 p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative shadow-lg">
+        <div className="mt-8 p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 overflow-hidden relative shadow-lg">
           <div className="absolute top-0 left-0 w-1 h-full bg-brand-yellow" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="w-12 h-12 bg-brand-yellow/10 rounded-xl flex items-center justify-center text-brand-yellow">

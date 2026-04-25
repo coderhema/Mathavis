@@ -22,18 +22,18 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
   const startY = 100;
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#f0f4f8] dark:bg-slate-950 relative transition-colors duration-300 scrollbar-hide">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-[#f0f4f8] dark:bg-slate-950 relative transition-colors duration-300 scrollbar-hide">
         {/* Decorative Background Elements */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-10">
             <div className="absolute top-20 left-[10%] w-32 h-32 bg-brand-green rounded-full blur-3xl" />
             <div className="absolute top-[40%] right-[10%] w-48 h-48 bg-brand-blue rounded-full blur-3xl" />
             <div className="absolute bottom-[20%] left-[15%] w-40 h-40 bg-brand-purple rounded-full blur-3xl" />
         </div>
-        <div className="max-w-2xl mx-auto pt-16 pb-48 flex flex-col items-center relative">
+        <div className="max-w-2xl mx-auto pt-10 sm:pt-16 pb-32 sm:pb-48 flex flex-col items-center relative">
             
             {/* Unit Header Card */}
             <div className="w-full px-6 mb-16 relative z-20">
-                <div className="bg-brand-blue rounded-[32px] p-8 shadow-[0_8px_0_#1a5fb4] text-white relative overflow-hidden group">
+                <div className="bg-brand-blue rounded-[32px] p-6 sm:p-8 shadow-[0_8px_0_#1a5fb4] text-white relative overflow-hidden group">
                     <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
@@ -42,13 +42,13 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                             </div>
                             <span className="font-black uppercase tracking-[0.2em] text-xs opacity-80">Unit 1</span>
                         </div>
-                        <h2 className="text-3xl font-black mb-2">Mathematical Foundations</h2>
-                        <p className="text-blue-100 font-bold mb-6">Master the building blocks of college math</p>
+                        <h2 className="text-2xl sm:text-3xl font-black mb-2">Mathematical Foundations</h2>
+                        <p className="text-blue-100 font-bold mb-6 text-sm sm:text-base">Master the building blocks of college math</p>
                         
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                             <button 
                                 onClick={onNewModuleClick}
-                                className="flex items-center gap-2 px-6 py-3 bg-white text-brand-blue rounded-2xl font-black shadow-[0_4px_0_#e2e8f0] hover:translate-y-0.5 hover:shadow-none transition-all text-sm"
+                                className="flex items-center justify-center gap-2 px-5 py-3 bg-white text-brand-blue rounded-2xl font-black shadow-[0_4px_0_#e2e8f0] hover:translate-y-0.5 hover:shadow-none transition-all text-sm"
                             >
                                 <Plus size={18} />
                                 NEW MODULE
@@ -152,7 +152,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                                     <button
                                         onClick={() => handleTopicClick(topic)}
                                         className={`
-                                            w-24 h-24 md:w-28 md:h-28 rounded-[32px] 
+                                            w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-[28px] sm:rounded-[32px] 
                                             flex items-center justify-center 
                                             ${topic.color} 
                                             border-4 border-white dark:border-slate-900

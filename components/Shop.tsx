@@ -27,11 +27,11 @@ const Shop: React.FC = () => {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300">
       <div className="max-w-4xl mx-auto">
          <div className="flex flex-col md:flex-row items-center justify-between mb-10 gap-6">
             <div className="text-center md:text-left">
-                <h2 className="text-3xl md:text-4xl font-extrabold text-slate-700 dark:text-slate-200">The Coop Store</h2>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-700 dark:text-slate-200">The Coop Store</h2>
                 <p className="text-slate-400 dark:text-slate-500 font-bold">Spend your hard-earned gems on power-ups</p>
             </div>
             
