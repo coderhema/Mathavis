@@ -5,6 +5,7 @@ import TopicPath from './components/TopicPath';
 import Whiteboard from './components/Whiteboard';
 import Library from './components/Library';
 import AuthPage from './components/AuthPage';
+import WaitlistPage from './components/WaitlistPage';
 import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
@@ -65,6 +66,7 @@ const App: React.FC = () => {
   });
   const [isTopicPromptOpen, setIsTopicPromptOpen] = useState(false);
   const [newTopicName, setNewTopicName] = useState('');
+  const [pathname, setPathname] = useState(() => window.location.pathname);
 
   // Persistent User Stats
   const [userStats, setUserStats] = useState<UserStats>(() => {
@@ -92,6 +94,15 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(TOPICS_STORAGE_KEY, JSON.stringify(topics));
   }, [topics]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setPathname(window.location.pathname);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const handleTopicSelect = (topic: Topic) => {
     setSelectedTopic(topic);
@@ -155,6 +166,15 @@ const App: React.FC = () => {
     soundService.playBoop();
     setIsDarkMode(prev => !prev);
   };
+
+  if (pathname === '/waitlist') {
+    return (
+      <>
+        <WaitlistPage />
+        <Analytics />
+      </>
+    );
+  }
 
   if (!isAuthenticated) {
       return (
