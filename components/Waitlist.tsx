@@ -82,6 +82,8 @@ const ANIMATION_STYLES = `
   .wl-exit  { animation: wl-slide-out 0.24s ease forwards; }
 `;
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 type Phase = 'form' | 'submitting' | 'complete' | 'error';
 
 const Waitlist: React.FC = () => {
@@ -99,7 +101,12 @@ const Waitlist: React.FC = () => {
   const [fieldError, setFieldError] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const waitlistEndpoint = import.meta.env.GOOGLE_SHEET_LINK as string | undefined;
+  const handleRetry = () => {
+    setPhase('form');
+    setDisplayStep(0);
+    setStepsDone(0);
+    setAnimClass('wl-enter');
+  };
   const step = STEPS[displayStep];
   const progress = (stepsDone / STEPS.length) * 100;
 
@@ -158,7 +165,7 @@ const Waitlist: React.FC = () => {
       setFieldError('This field is required.');
       return;
     }
-    if (step.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    if (step.type === 'email' && !EMAIL_REGEX.test(value)) {
       setFieldError('Please enter a valid email address.');
       return;
     }
@@ -234,7 +241,7 @@ const Waitlist: React.FC = () => {
               Please refresh the page and try again.
             </p>
             <button
-              onClick={() => { setPhase('form'); setDisplayStep(0); setStepsDone(0); setAnimClass('wl-enter'); }}
+              onClick={handleRetry}
               className="rounded-2xl bg-brand-blue px-6 py-3 text-sm font-black uppercase tracking-widest text-white shadow-[0_4px_0_#1a5fb4] hover:translate-y-0.5 hover:shadow-none transition-all"
             >
               Try Again
@@ -271,8 +278,10 @@ const Waitlist: React.FC = () => {
             <Sparkles size={12} />
             Mathavis Waitlist
           </div>
-          <span className="text-xs font-black tabular-nums text-slate-400 dark:text-slate-500">
-            {stepsDone + 1}&thinsp;/&thinsp;{STEPS.length}
+          <span className="flex items-center gap-0.5 text-xs font-black tabular-nums text-slate-400 dark:text-slate-500">
+            <span>{stepsDone + 1}</span>
+            <span className="mx-0.5">/</span>
+            <span>{STEPS.length}</span>
           </span>
         </div>
 
@@ -315,7 +324,7 @@ const Waitlist: React.FC = () => {
                       className="flex items-center gap-2 rounded-2xl bg-brand-blue px-6 py-3 text-sm font-black uppercase tracking-widest text-white shadow-[0_4px_0_#1a5fb4] transition-all hover:translate-y-0.5 hover:shadow-none"
                     >
                       <ArrowRight size={16} />
-                      {stepsDone === STEPS.length - 1 ? 'Submit' : 'Continue'}
+                      {displayStep === STEPS.length - 1 ? 'Submit' : 'Continue'}
                     </button>
                     <span className="text-xs font-medium text-slate-400 dark:text-slate-600">
                       or press{' '}
