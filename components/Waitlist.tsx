@@ -1,275 +1,362 @@
-import React, { useState } from 'react';
-import { CheckCircle2, Loader2, Mail, ShieldCheck, Sparkles, Users } from 'lucide-react';
-import VoxelChicken from './VoxelChicken';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowRight, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { soundService } from '../services/soundService';
 
 type Role = 'Parent' | 'Student' | 'Organization';
 type AgeGroup = 'Under 13' | '13-17' | '18-24' | '25-34' | '35-44' | '45+';
 type SubscriptionWillingness = 'Yes' | 'Maybe' | 'No';
 
-const AGE_GROUPS: AgeGroup[] = ['Under 13', '13-17', '18-24', '25-34', '35-44', '45+'];
-const ROLES: Role[] = ['Parent', 'Student', 'Organization'];
-const WILLINGNESS_OPTIONS: SubscriptionWillingness[] = ['Yes', 'Maybe', 'No'];
+interface FormData {
+  name: string;
+  ageGroup: AgeGroup | '';
+  role: Role | '';
+  email: string;
+  willingness: SubscriptionWillingness | '';
+}
+
+type StepType = 'text' | 'email' | 'choice';
+
+interface Step {
+  id: keyof FormData;
+  question: string;
+  subtitle: string;
+  type: StepType;
+  options?: string[];
+  placeholder?: string;
+}
+
+const STEPS: Step[] = [
+  {
+    id: 'name',
+    question: "What's your name?",
+    subtitle: "We'd love to know who you are.",
+    type: 'text',
+    placeholder: 'Your full name',
+  },
+  {
+    id: 'ageGroup',
+    question: 'How old are you?',
+    subtitle: 'Select the age group that fits you best.',
+    type: 'choice',
+    options: ['Under 13', '13-17', '18-24', '25-34', '35-44', '45+'],
+  },
+  {
+    id: 'role',
+    question: 'What best describes you?',
+    subtitle: 'This helps us personalise your experience.',
+    type: 'choice',
+    options: ['Student', 'Parent', 'Organization'],
+  },
+  {
+    id: 'email',
+    question: "What's your email address?",
+    subtitle: "We'll send you early access details when it's ready.",
+    type: 'email',
+    placeholder: 'you@example.com',
+  },
+  {
+    id: 'willingness',
+    question: 'Would you pay a small monthly fee?',
+    subtitle: 'Be honest — it helps us plan.',
+    type: 'choice',
+    options: ['Yes, definitely', 'Maybe', 'Not right now'],
+  },
+];
+
+const WILLINGNESS_MAP: Record<string, SubscriptionWillingness> = {
+  'Yes, definitely': 'Yes',
+  'Maybe': 'Maybe',
+  'Not right now': 'No',
+};
+
+const ANIMATION_STYLES = `
+  @keyframes wl-slide-in {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0);    }
+  }
+  @keyframes wl-slide-out {
+    from { opacity: 1; transform: translateY(0);    }
+    to   { opacity: 0; transform: translateY(-22px); }
+  }
+  .wl-enter { animation: wl-slide-in  0.38s cubic-bezier(0.34, 1.45, 0.64, 1) forwards; }
+  .wl-exit  { animation: wl-slide-out 0.24s ease forwards; }
+`;
+
+type Phase = 'form' | 'submitting' | 'complete' | 'error';
 
 const Waitlist: React.FC = () => {
-  const [name, setName] = useState('');
-  const [ageGroup, setAgeGroup] = useState<AgeGroup | ''>('');
-  const [role, setRole] = useState<Role | ''>('');
-  const [email, setEmail] = useState('');
-  const [willingness, setWillingness] = useState<SubscriptionWillingness | ''>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [status, setStatus] = useState<{ type: 'idle' | 'success' | 'error'; message: string }>({
-    type: 'idle',
-    message: '',
+  const [displayStep, setDisplayStep] = useState(0);
+  const [stepsDone, setStepsDone] = useState(0);
+  const [animClass, setAnimClass] = useState('wl-enter');
+  const [formData, setFormData] = useState<FormData>({
+    name: '',
+    ageGroup: '',
+    role: '',
+    email: '',
+    willingness: '',
   });
+  const [phase, setPhase] = useState<Phase>('form');
+  const [fieldError, setFieldError] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const waitlistEndpoint = import.meta.env.GOOGLE_SHEET_LINK as string | undefined;
+  const step = STEPS[displayStep];
+  const progress = (stepsDone / STEPS.length) * 100;
 
-  const resetStatus = () => {
-    if (status.type !== 'idle') {
-      setStatus({ type: 'idle', message: '' });
+  useEffect(() => {
+    if (step && (step.type === 'text' || step.type === 'email') && inputRef.current) {
+      inputRef.current.focus();
     }
+  }, [displayStep, step]);
+
+  const advance = (updatedData: FormData, nextIndex: number) => {
+    setAnimClass('wl-exit');
+    setTimeout(() => {
+      setStepsDone(nextIndex);
+      if (nextIndex >= STEPS.length) {
+        setPhase('submitting');
+        submitForm(updatedData);
+      } else {
+        setDisplayStep(nextIndex);
+        setAnimClass('wl-enter');
+      }
+    }, 260);
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    soundService.playBoop();
-
+  const submitForm = async (data: FormData) => {
     if (!waitlistEndpoint) {
-      setStatus({
-        type: 'error',
-        message: 'Waitlist endpoint is not configured yet. Add GOOGLE_SHEET_LINK in Vercel to enable submissions.',
-      });
+      setPhase('complete');
       return;
     }
 
-    setIsSubmitting(true);
-    setStatus({ type: 'idle', message: '' });
+    const willingnessValue =
+      WILLINGNESS_MAP[data.willingness as string] ?? (data.willingness as SubscriptionWillingness);
 
     const payload = {
-      name: name.trim(),
-      ageGroup,
-      role,
-      email: email.trim(),
-      willingness,
+      name: data.name.trim(),
+      ageGroup: data.ageGroup,
+      role: data.role,
+      email: data.email.trim(),
+      willingness: willingnessValue,
       source: 'waitlist',
       submittedAt: new Date().toISOString(),
     };
 
     try {
-      const formData = new FormData();
-      Object.entries(payload).forEach(([key, value]) => {
-        formData.append(key, String(value));
-      });
-
-      await fetch(waitlistEndpoint, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: formData,
-      });
-
-      setStatus({
-        type: 'success',
-        message: 'You are on the waitlist. We saved your details to the configured Google Sheet endpoint.',
-      });
-      setName('');
-      setAgeGroup('');
-      setRole('');
-      setEmail('');
-      setWillingness('');
+      const fd = new FormData();
+      Object.entries(payload).forEach(([key, value]) => fd.append(key, String(value)));
+      await fetch(waitlistEndpoint, { method: 'POST', mode: 'no-cors', body: fd });
+      setPhase('complete');
     } catch {
-      setStatus({
-        type: 'error',
-        message: 'Something went wrong while sending the waitlist entry. Please try again.',
-      });
-    } finally {
-      setIsSubmitting(false);
+      setPhase('error');
     }
   };
 
+  const handleTextContinue = () => {
+    const value = (formData[step.id] as string).trim();
+    if (!value) {
+      setFieldError('This field is required.');
+      return;
+    }
+    if (step.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      setFieldError('Please enter a valid email address.');
+      return;
+    }
+    soundService.playBoop();
+    setFieldError('');
+    advance(formData, stepsDone + 1);
+  };
+
+  const handleChoiceSelect = (option: string) => {
+    soundService.playBoop();
+    let value: string = option;
+    if (step.id === 'willingness') value = WILLINGNESS_MAP[option] ?? option;
+    const updated = { ...formData, [step.id]: value };
+    setFormData(updated);
+    setFieldError('');
+    advance(updated, stepsDone + 1);
+  };
+
+  if (phase === 'submitting') {
+    return (
+      <>
+        <style>{ANIMATION_STYLES}</style>
+        <div className="min-h-dvh bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4 wl-enter">
+            <Loader2 size={40} className="animate-spin text-brand-blue" />
+            <p className="text-sm font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+              Saving your spot…
+            </p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (phase === 'complete') {
+    return (
+      <>
+        <style>{ANIMATION_STYLES}</style>
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 left-8 h-56 w-56 rounded-full bg-brand-blue/10 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-72 w-72 rounded-full bg-brand-green/10 blur-3xl" />
+        </div>
+        <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-6">
+          <div className="text-center space-y-6 max-w-md wl-enter">
+            <div className="mx-auto w-20 h-20 rounded-full bg-brand-green/10 flex items-center justify-center">
+              <CheckCircle2 size={40} className="text-brand-green" />
+            </div>
+            <div className="space-y-3">
+              <h2 className="text-4xl font-black text-slate-800 dark:text-slate-100">You're on the list!</h2>
+              <p className="text-base font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
+                We'll reach out to{' '}
+                <span className="font-bold text-brand-blue">{formData.email}</span> when early access opens.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 rounded-full border-2 border-brand-blue/20 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-blue dark:border-brand-blue/30 dark:bg-slate-900/80">
+              <Sparkles size={12} />
+              Mathavis Early Access
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (phase === 'error') {
+    return (
+      <>
+        <style>{ANIMATION_STYLES}</style>
+        <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-6">
+          <div className="text-center space-y-6 max-w-md wl-enter">
+            <p className="text-4xl font-black text-slate-800 dark:text-slate-100">Something went wrong.</p>
+            <p className="text-base font-medium text-slate-500 dark:text-slate-400">
+              Please refresh the page and try again.
+            </p>
+            <button
+              onClick={() => { setPhase('form'); setDisplayStep(0); setStepsDone(0); setAnimClass('wl-enter'); }}
+              className="rounded-2xl bg-brand-blue px-6 py-3 text-sm font-black uppercase tracking-widest text-white shadow-[0_4px_0_#1a5fb4] hover:translate-y-0.5 hover:shadow-none transition-all"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div className="relative min-h-dvh overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+    <>
+      <style>{ANIMATION_STYLES}</style>
+
+      {/* Ambient blobs */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-24 left-8 h-56 w-56 rounded-full bg-brand-blue/10 blur-3xl" />
         <div className="absolute top-1/3 right-0 h-72 w-72 rounded-full bg-brand-green/10 blur-3xl" />
         <div className="absolute bottom-0 left-1/4 h-64 w-64 rounded-full bg-brand-yellow/10 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-dvh w-full max-w-6xl flex-col justify-center px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.1fr]">
-          <div className="max-w-xl space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border-2 border-brand-blue/20 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-blue shadow-sm backdrop-blur dark:border-brand-blue/30 dark:bg-slate-900/80">
-              <Sparkles size={14} />
-              Waitlist
-            </div>
+      <div className="relative min-h-dvh bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col">
+        {/* Progress bar */}
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 bg-slate-200 dark:bg-slate-800">
+          <div
+            className="h-full bg-brand-blue transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
 
-            <div className="space-y-4">
-              <h1 className="text-4xl font-black tracking-tight text-slate-800 dark:text-slate-100 sm:text-5xl lg:text-6xl">
-                Get early access to
-                <span className="block text-brand-blue">Mathavis</span>
-              </h1>
-              <p className="max-w-lg text-base font-medium leading-relaxed text-slate-500 dark:text-slate-400 sm:text-lg">
-                Join the private launch list for parents, students, and organizations who want an interactive maths experience with the same playful Mathavis design.
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              {[
-                { icon: Users, label: 'Built for families and classrooms' },
-                { icon: ShieldCheck, label: 'Private signup endpoint via Vercel' },
-                { icon: Mail, label: 'Get notified when the waitlist opens' },
-              ].map(({ icon: Icon, label }) => (
-                <div key={label} className="flex items-center gap-3 rounded-2xl border-2 border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-blue/10 text-brand-blue">
-                    <Icon size={18} />
-                  </div>
-                  <p className="text-sm font-bold leading-tight text-slate-600 dark:text-slate-300">{label}</p>
-                </div>
-              ))}
-            </div>
+        {/* Header */}
+        <div className="relative z-10 flex items-center justify-between px-6 py-5 sm:px-10">
+          <div className="inline-flex items-center gap-2 rounded-full border-2 border-brand-blue/20 bg-white/80 px-4 py-2 text-[10px] font-black uppercase tracking-[0.28em] text-brand-blue shadow-sm backdrop-blur dark:border-brand-blue/30 dark:bg-slate-900/80">
+            <Sparkles size={12} />
+            Mathavis Waitlist
           </div>
+          <span className="text-xs font-black tabular-nums text-slate-400 dark:text-slate-500">
+            {stepsDone + 1}&thinsp;/&thinsp;{STEPS.length}
+          </span>
+        </div>
 
-          <div className="relative mx-auto w-full max-w-2xl">
-            <div className="relative overflow-visible rounded-[36px] border-4 border-slate-200 bg-white p-6 pb-24 shadow-[0_18px_0_#e2e8f0] dark:border-slate-800 dark:bg-slate-900 dark:shadow-[0_18px_0_#0f172a] sm:p-8">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400 dark:text-slate-500">Join the list</p>
-                  <h2 className="mt-1 text-2xl font-black text-slate-800 dark:text-slate-100">Reserve a spot</h2>
-                </div>
-                <div className="rounded-2xl bg-brand-green/10 px-3 py-2 text-xs font-black uppercase tracking-widest text-brand-green">
-                  Limited launch
-                </div>
-              </div>
-
-              <form className="space-y-4" onSubmit={handleSubmit}>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="space-y-2 sm:col-span-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Name</span>
-                    <input
-                      required
-                      type="text"
-                      value={name}
-                      onChange={(event) => {
-                        setName(event.target.value);
-                        resetStatus();
-                      }}
-                      placeholder="Your full name"
-                      className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-bold text-slate-700 outline-none transition-all placeholder:font-medium placeholder:text-slate-400 focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                    />
-                  </label>
-
-                  <label className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Age Group</span>
-                    <select
-                      required
-                      value={ageGroup}
-                      onChange={(event) => {
-                        setAgeGroup(event.target.value as AgeGroup);
-                        resetStatus();
-                      }}
-                      className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-bold text-slate-700 outline-none transition-all focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                    >
-                      <option value="">Select age group</option>
-                      {AGE_GROUPS.map((group) => (
-                        <option key={group} value={group}>
-                          {group}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-
-                  <label className="space-y-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Role</span>
-                    <select
-                      required
-                      value={role}
-                      onChange={(event) => {
-                        setRole(event.target.value as Role);
-                        resetStatus();
-                      }}
-                      className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-bold text-slate-700 outline-none transition-all focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                    >
-                      <option value="">Select role</option>
-                      {ROLES.map((item) => (
-                        <option key={item} value={item}>
-                          {item}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-
-                <label className="space-y-2 block">
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Email</span>
-                  <input
-                    required
-                    type="email"
-                    value={email}
-                    onChange={(event) => {
-                      setEmail(event.target.value);
-                      resetStatus();
-                    }}
-                    placeholder="you@example.com"
-                    className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-bold text-slate-700 outline-none transition-all placeholder:font-medium placeholder:text-slate-400 focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  />
-                </label>
-
-                <label className="space-y-2 block">
-                  <span className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">Willingness to pay a small monthly sub fee</span>
-                  <select
-                    required
-                    value={willingness}
-                    onChange={(event) => {
-                      setWillingness(event.target.value as SubscriptionWillingness);
-                      resetStatus();
-                    }}
-                    className="w-full rounded-2xl border-2 border-slate-200 bg-slate-50 px-4 py-3 font-bold text-slate-700 outline-none transition-all focus:border-brand-blue dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-                  >
-                    <option value="">Choose an option</option>
-                    {WILLINGNESS_OPTIONS.map((item) => (
-                      <option key={item} value={item}>
-                        {item}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand-blue px-5 py-4 text-sm font-black uppercase tracking-[0.18em] text-white shadow-[0_4px_0_#1a5fb4] transition-all hover:translate-y-0.5 hover:shadow-none disabled:cursor-not-allowed disabled:opacity-70"
-                >
-                  {isSubmitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle2 size={18} />}
-                  {isSubmitting ? 'Saving...' : 'Join waitlist'}
-                </button>
-
-                {status.message && (
-                  <p
-                    className={`rounded-2xl border-2 px-4 py-3 text-sm font-bold ${
-                      status.type === 'success'
-                        ? 'border-brand-green/20 bg-brand-green/10 text-brand-green'
-                        : 'border-brand-red/20 bg-brand-red/10 text-brand-red'
-                    }`}
-                  >
-                    {status.message}
-                  </p>
-                )}
-
-                <p className="text-xs font-medium leading-relaxed text-slate-400 dark:text-slate-500">
-                  Submissions are sent to the URL stored in GOOGLE_SHEET_LINK.
+        {/* Centred question area */}
+        <div className="relative z-10 flex flex-1 items-center justify-center px-6 py-10 sm:px-10">
+          <div className="w-full max-w-xl">
+            <div key={displayStep} className={`space-y-8 ${animClass}`}>
+              {/* Question text */}
+              <div className="space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-[0.32em] text-brand-blue">
+                  Question {displayStep + 1}
                 </p>
-              </form>
-
-              <div className="absolute -bottom-10 left-1/2 z-20 -translate-x-1/2">
-                <div className="flex h-24 w-24 items-center justify-center rounded-[28px] border-4 border-slate-100 bg-white shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:h-28 sm:w-28">
-                  <VoxelChicken size={84} emotion="happy" isAnimated={true} />
-                </div>
+                <h2 className="text-3xl font-black leading-tight text-slate-800 dark:text-slate-100 sm:text-4xl">
+                  {step.question}
+                </h2>
+                <p className="text-base font-medium text-slate-500 dark:text-slate-400">{step.subtitle}</p>
               </div>
+
+              {/* Text / email input */}
+              {(step.type === 'text' || step.type === 'email') && (
+                <div className="space-y-5">
+                  <input
+                    ref={inputRef}
+                    type={step.type}
+                    value={formData[step.id] as string}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, [step.id]: e.target.value }));
+                      setFieldError('');
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleTextContinue()}
+                    placeholder={step.placeholder}
+                    className="w-full border-b-2 border-slate-300 dark:border-slate-600 bg-transparent px-0 py-3 text-xl font-bold text-slate-800 dark:text-slate-100 placeholder:text-slate-300 dark:placeholder:text-slate-600 outline-none focus:border-brand-blue transition-colors duration-200"
+                  />
+                  {fieldError && (
+                    <p className="text-sm font-bold text-red-500">{fieldError}</p>
+                  )}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleTextContinue}
+                      className="flex items-center gap-2 rounded-2xl bg-brand-blue px-6 py-3 text-sm font-black uppercase tracking-widest text-white shadow-[0_4px_0_#1a5fb4] transition-all hover:translate-y-0.5 hover:shadow-none"
+                    >
+                      <ArrowRight size={16} />
+                      {stepsDone === STEPS.length - 1 ? 'Submit' : 'Continue'}
+                    </button>
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-600">
+                      or press{' '}
+                      <kbd className="rounded border border-slate-300 dark:border-slate-700 px-1.5 py-0.5 font-bold text-slate-500 dark:text-slate-400">
+                        Enter ↵
+                      </kbd>
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Choice cards */}
+              {step.type === 'choice' && (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {step.options?.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => handleChoiceSelect(option)}
+                      className="group flex items-center justify-between gap-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-5 py-4 text-left font-bold text-slate-700 dark:text-slate-200 shadow-sm transition-all hover:border-brand-blue hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+                    >
+                      <span className="text-base">{option}</span>
+                      <ArrowRight
+                        size={16}
+                        className="shrink-0 text-slate-300 dark:text-slate-600 group-hover:text-brand-blue transition-colors"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
+
+        {/* Footer */}
+        <div className="relative z-10 px-6 py-5 text-center sm:px-10">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">
+            Mathavis · Early Access
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 
