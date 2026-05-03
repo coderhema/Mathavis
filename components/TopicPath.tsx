@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Divide, Sigma, Network, Grid, Lock, Trophy, Star, Plus, Sparkles } from 'lucide-react';
 import { Topic } from '../types';
 import { soundService } from '../services/soundService';
@@ -10,6 +10,11 @@ interface TopicPathProps {
   onNewModuleClick: () => void;
 }
 
+// SVG coordinate space width — path offsets are expressed in these units
+const SVG_VIEWBOX_WIDTH = 600;
+// Offset in SVG units; CSS pixel offset is computed proportionally at runtime
+const SVG_NODE_OFFSET = 60;
+
 const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModuleClick }) => {
   const handleTopicClick = (topic: Topic) => {
     soundService.playBoop();
@@ -18,17 +23,38 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
 
   // Path configuration
   const nodeSpacing = 180;
-  const nodeOffset = 60;
   const startY = 100;
 
+  // Track the rendered width of the SVG container so the CSS node offsets
+  // scale exactly in sync with the SVG path at every viewport size.
+  const svgContainerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(SVG_VIEWBOX_WIDTH);
+
+  useEffect(() => {
+    const el = svgContainerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(entries => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    obs.observe(el);
+    setContainerWidth(el.offsetWidth);
+    return () => obs.disconnect();
+  }, []);
+
+  // Pixel offset for nodes = SVG unit offset scaled to actual rendered pixels
+  const nodeOffset = (containerWidth / SVG_VIEWBOX_WIDTH) * SVG_NODE_OFFSET;
+
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-[#f0f4f8] dark:bg-slate-950 relative transition-colors duration-300 scrollbar-hide">
-        {/* Decorative Background Elements */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-20 dark:opacity-10">
-            <div className="absolute top-20 left-[10%] w-32 h-32 bg-brand-green rounded-full blur-3xl" />
-            <div className="absolute top-[40%] right-[10%] w-48 h-48 bg-brand-blue rounded-full blur-3xl" />
-            <div className="absolute bottom-[20%] left-[15%] w-40 h-40 bg-brand-purple rounded-full blur-3xl" />
-        </div>
+    <div
+      className="flex-1 min-h-0 overflow-y-auto relative dark-transition scrollbar-hide"
+      style={{ background: 'var(--bg2)' }}
+    >
+        {/* Decorative floating math symbols */}
+        <span className="math-float" style={{ top: '8%',  left: '4%'  }}>∑</span>
+        <span className="math-float" style={{ top: '25%', right: '5%' }}>π²</span>
+        <span className="math-float" style={{ top: '55%', left: '3%'  }}>∞</span>
+        <span className="math-float" style={{ top: '72%', right: '6%' }}>√x</span>
+
         <div className="max-w-2xl mx-auto pt-10 sm:pt-16 pb-32 sm:pb-48 flex flex-col items-center relative">
             
             {/* Unit Header Card */}
@@ -40,7 +66,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
                                 <Trophy className="text-brand-yellow" size={20} />
                             </div>
-                            <span className="font-black uppercase tracking-[0.2em] text-xs opacity-80">Unit 1</span>
+                            <span className="mono-label opacity-80" style={{ color: 'rgba(255,255,255,0.8)' }}>Unit 1</span>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-black mb-2">Mathematical Foundations</h2>
                         <p className="text-blue-100 font-bold mb-6 text-sm sm:text-base">Master the building blocks of college math</p>
@@ -66,7 +92,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
             </div>
 
             {/* The Journey Path */}
-            <div className="w-full relative" style={{ minHeight: (topics.length + 1) * nodeSpacing + startY }}>
+            <div ref={svgContainerRef} className="w-full relative" style={{ minHeight: (topics.length + 1) * nodeSpacing + startY }}>
                 {/* SVG Path Layer */}
                 <svg 
                     className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-visible" 
@@ -84,7 +110,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                     
                     {/* Thick Base Path */}
                     <path
-                        d={generatePath(topics.length, nodeSpacing, nodeOffset, startY)}
+                        d={generatePath(topics.length, nodeSpacing, SVG_NODE_OFFSET, startY)}
                         fill="none"
                         stroke="url(#pathGradient)"
                         strokeWidth="32"
@@ -94,7 +120,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                     
                     {/* Dashed Center Line */}
                     <path
-                        d={generatePath(topics.length, nodeSpacing, nodeOffset, startY)}
+                        d={generatePath(topics.length, nodeSpacing, SVG_NODE_OFFSET, startY)}
                         fill="none"
                         stroke="#cbd5e1"
                         strokeWidth="6"
@@ -109,7 +135,7 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                         const y = startY + t * topics.length * nodeSpacing;
                         const isLeft = Math.floor(t * topics.length) % 3 === 0;
                         const isRight = Math.floor(t * topics.length) % 3 === 2;
-                        const x = isLeft ? -nodeOffset : (isRight ? nodeOffset : 0);
+                        const x = isLeft ? -SVG_NODE_OFFSET : (isRight ? SVG_NODE_OFFSET : 0);
                         return (
                             <circle 
                                 key={i}
@@ -155,12 +181,12 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                                             w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-[28px] sm:rounded-[32px] 
                                             flex items-center justify-center 
                                             ${topic.color} 
-                                            border-4 border-white dark:border-slate-900
                                             shadow-[0_10px_0_rgba(0,0,0,0.15)] 
                                             relative z-10
                                             transition-all active:translate-y-[6px] active:shadow-[0_4px_0_rgba(0,0,0,0.15)]
                                             group-hover:brightness-110
                                         `}
+                                        style={{ border: '4px solid var(--bg)' }}
                                     >
                                         <div className="text-white drop-shadow-md">
                                             {topic.id === 'algebra' && <Grid size={36} strokeWidth={2.5} />}
@@ -181,12 +207,15 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                                     {/* Enhanced Tooltip Pop-up */}
                                     <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
                                         <div className="opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-4 group-hover:translate-y-0">
-                                            <div className="bg-white dark:bg-slate-900 px-5 py-3 rounded-[24px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl relative">
+                                            <div className="ds-card px-5 py-3 rounded-[24px] relative" style={{ minWidth: 160 }}>
                                                 {/* Tooltip Arrow */}
-                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-white dark:bg-slate-900 border-t-4 border-l-4 border-slate-200 dark:border-slate-800 rotate-45 rounded-sm"></div>
+                                                <div
+                                                  className="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 rotate-45 rounded-sm"
+                                                  style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderBottom: 'none', borderRight: 'none' }}
+                                                />
                                                 
                                                 <div className="relative z-10 flex flex-col items-center gap-1">
-                                                    <span className="font-black text-slate-700 dark:text-slate-200 text-base uppercase tracking-wider">{topic.name}</span>
+                                                    <span className="font-black text-base uppercase tracking-wider" style={{ color: 'var(--text)' }}>{topic.name}</span>
                                                     
                                                     <div className="flex items-center gap-2">
                                                         <div className="flex gap-0.5">
@@ -194,16 +223,17 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                                                                 <Star 
                                                                     key={i} 
                                                                     size={12} 
-                                                                    className={i < Math.ceil((topic.completed || 0) / 20) ? "fill-brand-yellow text-brand-yellow" : "text-slate-200 dark:text-slate-700"} 
+                                                                    className={i < Math.ceil((topic.completed || 0) / 20) ? "fill-brand-yellow text-brand-yellow" : ""}
+                                                                    style={i < Math.ceil((topic.completed || 0) / 20) ? {} : { color: 'var(--border2)' }}
                                                                 />
                                                             ))}
                                                         </div>
-                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase">
+                                                        <span className="mono-hint">
                                                             {topic.completed > 80 ? 'Popular' : 'Mastery'}
                                                         </span>
                                                     </div>
                                                     
-                                                    <div className="w-32 h-2 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                                    <div className="w-32 h-2 rounded-full mt-1 overflow-hidden" style={{ background: 'var(--bg3)' }}>
                                                         <div 
                                                             className="h-full bg-brand-green transition-all duration-1000" 
                                                             style={{ width: `${topic.completed}%` }}
@@ -220,10 +250,11 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
 
                     {/* Final Locked Milestone */}
                     <div className="mt-12 relative">
-                        <div className="w-24 h-24 rounded-full bg-slate-200 dark:bg-slate-800 border-4 border-white dark:border-slate-900 flex items-center justify-center opacity-50">
-                            <Lock size={32} className="text-slate-400" />
+                        <div className="w-24 h-24 rounded-full border-4 flex items-center justify-center opacity-50"
+                             style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
+                            <Lock size={32} style={{ color: 'var(--text3)' }} />
                         </div>
-                        <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 text-slate-400 font-black text-xs uppercase tracking-widest">Locked</div>
+                        <div className="absolute top-full mt-4 left-1/2 -translate-x-1/2 mono-hint font-black text-xs uppercase tracking-widest">Locked</div>
                     </div>
                 </div>
             </div>
