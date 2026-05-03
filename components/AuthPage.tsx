@@ -9,7 +9,9 @@ interface AuthPageProps {
   toggleDarkMode?: () => void;
 }
 
-const AUTH_FLOAT = [
+interface FloatSymbol { top: string; sym: string; left?: string; right?: string; }
+
+const AUTH_FLOAT: FloatSymbol[] = [
   { top: '10%',  left: '5%',   sym: '∑' },
   { top: '20%',  right: '8%',  sym: 'π²' },
   { top: '50%',  left: '3%',   sym: '∞' },
@@ -46,7 +48,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
         <span
           key={i}
           className="math-float"
-          style={{ top: p.top, left: (p as any).left, right: (p as any).right }}
+          style={{ top: p.top, left: p.left, right: p.right }}
         >
           {p.sym}
         </span>

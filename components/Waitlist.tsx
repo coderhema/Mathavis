@@ -15,7 +15,9 @@ const MATH_SYMBOLS = ['∑', 'π²', '∞', '√x', '∫', '∂', 'θ', 'λ', '�
 const CONFETTI_COLORS = ['#f59e0b', '#2563eb', '#ef4444', '#10b981', '#8b5cf6', '#f472b6', '#fbbf24'];
 
 // Floating math symbol positions (irregular, never center-aligned)
-const FLOAT_POSITIONS = [
+interface FloatPosition { top: string; symbol: string; left?: string; right?: string; }
+
+const FLOAT_POSITIONS: FloatPosition[] = [
   { top: '8%',  left: '6%',   symbol: '∑'  },
   { top: '14%', right: '9%',  symbol: 'π²' },
   { top: '32%', left: '4%',   symbol: '∞'  },
@@ -180,7 +182,7 @@ const Waitlist: React.FC = () => {
         <span
           key={i}
           className="math-float"
-          style={{ top: p.top, left: (p as any).left, right: (p as any).right }}
+          style={{ top: p.top, left: p.left, right: p.right }}
         >
           {p.symbol}
         </span>
@@ -259,7 +261,7 @@ const Waitlist: React.FC = () => {
               <p style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, color: 'var(--text2)' }}>
                 {status.message}
               </p>
-              <div className="flex items-center gap-2 mt-2">
+              <div className="flex flex-wrap items-center gap-3 mt-2">
                 {[
                   { icon: Users, label: 'Built for families and classrooms' },
                   { icon: ShieldCheck, label: 'Private & secure' },
@@ -267,6 +269,7 @@ const Waitlist: React.FC = () => {
                 ].map(({ icon: Icon, label }) => (
                   <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: 'var(--text2)' }}>
                     <Icon size={14} style={{ color: 'var(--accent)' }} />
+                    <span>{label}</span>
                   </div>
                 ))}
               </div>
