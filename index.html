@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>MathLingo Vis</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
     <!-- KaTeX for Math Rendering -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
     <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
@@ -15,22 +15,36 @@
         theme: {
           extend: {
             fontFamily: {
-              sans: ['Nunito', 'sans-serif'],
+              sans:  ['Space Grotesk', 'Nunito', 'sans-serif'],
+              mono:  ['Space Mono', 'monospace'],
+              nunito: ['Nunito', 'sans-serif'],
             },
             colors: {
               brand: {
-                green: '#58CC02',
-                greenDark: '#46A302',
-                blue: '#1CB0F6',
-                blueDark: '#1899D6',
-                yellow: '#FFC800',
+                green:      '#58CC02',
+                greenDark:  '#46A302',
+                blue:       '#1CB0F6',
+                blueDark:   '#1899D6',
+                yellow:     '#FFC800',
                 yellowDark: '#E5B400',
-                purple: '#CE82FF',
+                purple:     '#CE82FF',
                 purpleDark: '#AF6EDB',
-                red: '#FF4B4B',
-                redDark: '#D33E3E',
-              }
-            }
+                red:        '#FF4B4B',
+                redDark:    '#D33E3E',
+              },
+              /* Mathavis design-system tokens exposed as Tailwind utilities */
+              ds: {
+                blue:    '#2563eb',
+                blue2:   '#1d4ed8',
+                accent:  '#f59e0b',
+                accent2: '#fbbf24',
+                success: '#10b981',
+                error:   '#ef4444',
+              },
+            },
+            borderRadius: {
+              squircle: '14px',
+            },
           },
         },
       }
