@@ -280,38 +280,46 @@ const Library: React.FC = () => {
   }, [selectedTopic, params]);
 
   return (
-    <div className="flex-1 min-h-0 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden transition-colors duration-300">
+    <div
+      className="flex-1 min-h-0 flex flex-col overflow-hidden dark-transition"
+      style={{ background: 'var(--bg2)' }}
+    >
       {/* Header */}
-      <div className="p-8 bg-white dark:bg-slate-900 border-b-2 border-slate-200 dark:border-slate-800 shadow-sm z-10">
+      <div className="z-10 shrink-0" style={{ background: 'var(--bg)', borderBottom: '1.5px solid var(--border)', padding: '1.5rem 2rem' }}>
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
-              <h1 className="text-3xl font-extrabold text-slate-700 dark:text-slate-200 tracking-tight mb-2">Visual Library</h1>
-              <p className="text-slate-400 dark:text-slate-500 font-bold">Curated interactive explanations for core math concepts</p>
+              <span className="mono-label mb-1 block">Visual Library</span>
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
+                Interactive Concepts
+              </h1>
+              <p className="mono-hint mt-1">Curated explanations for core math topics</p>
             </div>
-            
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-blue transition-colors" size={20} />
-              <input 
-                type="text" 
-                placeholder="Search topics..." 
+
+            {/* Search */}
+            <div className="relative group" style={{ minWidth: 0 }}>
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors group-focus-within:text-[var(--blue)]"
+                size={18}
+                style={{ color: 'var(--text3)' }}
+              />
+              <input
+                type="text"
+                placeholder="Search topics..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-6 py-3 bg-slate-100 dark:bg-slate-800 border-2 border-transparent focus:border-brand-blue outline-none rounded-2xl w-full md:w-80 font-bold text-slate-600 dark:text-slate-300 transition-all"
+                className="ds-input pl-11 w-full md:w-80"
               />
             </div>
           </div>
 
-          <div className="flex gap-2 mt-8 overflow-x-auto pb-2 scrollbar-hide">
+          {/* Category chips */}
+          <div className="flex gap-2 mt-6 overflow-x-auto pb-1 scrollbar-hide">
             {categories.map(cat => (
               <button
                 key={cat}
                 onClick={() => { soundService.playBoop(); setActiveCategory(cat); }}
-                className={`px-6 py-2 rounded-xl font-extrabold text-sm transition-all whitespace-nowrap border-2 ${
-                  activeCategory === cat 
-                    ? 'bg-brand-blue text-white border-brand-blue shadow-md' 
-                    : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-brand-blue hover:text-brand-blue'
-                }`}
+                className={'chip' + (activeCategory === cat ? ' selected' : '')}
               >
                 {cat}
               </button>
@@ -321,36 +329,49 @@ const Library: React.FC = () => {
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex-1 overflow-y-auto p-6 sm:p-8 scrollbar-hide">
+        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredTopics.map(topic => (
-            <div 
+            <div
               key={topic.id}
               onClick={() => handleTopicClick(topic)}
-              className="group bg-white dark:bg-slate-900 rounded-[32px] border-4 border-slate-200 dark:border-slate-800 p-6 shadow-sm hover:shadow-xl hover:border-brand-blue transition-all cursor-pointer flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500"
+              className="ds-card group rounded-[24px] p-6 cursor-pointer flex flex-col transition-all hover:scale-[1.01] animate-in fade-in slide-in-from-bottom-4 duration-500"
+              onMouseEnter={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--blue)'}
+              onMouseLeave={e => (e.currentTarget as HTMLDivElement).style.borderColor = 'var(--border)'}
             >
               <div className="flex items-center justify-between mb-4">
-                <span className="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                <span
+                  className="px-3 py-1 rounded-lg mono-label"
+                  style={{ background: 'var(--bg3)', color: 'var(--text3)' }}
+                >
                   {topic.category}
                 </span>
-                <div className="w-10 h-10 rounded-xl bg-brand-blue/10 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform">
-                  <Play size={20} fill="currentColor" />
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform"
+                  style={{ background: 'rgba(37,99,235,0.1)', color: 'var(--blue)' }}
+                >
+                  <Play size={18} fill="currentColor" />
                 </div>
               </div>
-              
-              <h3 className="text-xl font-extrabold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-brand-blue transition-colors">
+
+              <h3
+                className="text-lg font-black mb-2 transition-colors group-hover:text-[var(--blue)]"
+                style={{ color: 'var(--text)' }}
+              >
                 {topic.title}
               </h3>
-              <p className="text-slate-400 dark:text-slate-500 text-sm font-bold leading-relaxed flex-1">
-                {topic.description}
-              </p>
-              
-              <div className="mt-6 pt-6 border-t-2 border-slate-50 dark:border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-brand-blue font-black uppercase text-[10px] tracking-widest">
-                  <Info size={14} />
+              <p className="mono-hint leading-relaxed flex-1">{topic.description}</p>
+
+              <div className="mt-5 pt-5 flex items-center justify-between" style={{ borderTop: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-1.5 mono-label" style={{ color: 'var(--blue)' }}>
+                  <Info size={12} />
                   Explore
                 </div>
-                <ArrowRight size={18} className="text-slate-300 group-hover:text-brand-blue group-hover:translate-x-1 transition-all" />
+                <ArrowRight
+                  size={16}
+                  className="group-hover:translate-x-1 transition-transform"
+                  style={{ color: 'var(--text3)' }}
+                />
               </div>
             </div>
           ))}
@@ -358,34 +379,49 @@ const Library: React.FC = () => {
 
         {filteredTopics.length === 0 && (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-300 dark:text-slate-700 mb-4">
-              <Search size={40} />
+            <div
+              className="w-20 h-20 rounded-full flex items-center justify-center mb-4"
+              style={{ background: 'var(--bg3)', color: 'var(--text3)' }}
+            >
+              <Search size={36} />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-400 dark:text-slate-600">No topics found matching your search</h3>
+            <h3 className="text-lg font-black" style={{ color: 'var(--text2)' }}>No topics found</h3>
+            <p className="mono-hint mt-1">Try a different search or category</p>
           </div>
         )}
       </div>
 
       {/* Detail Modal */}
       {selectedTopic && (
-        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
-          <div className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[95dvh] max-h-[95dvh] rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
+          <div
+            className="ds-card w-full max-w-6xl h-[95dvh] max-h-[95dvh] rounded-[32px] sm:rounded-[40px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
+          >
             {/* Modal Header */}
-            <div className="p-4 sm:p-8 border-b-2 border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+            <div
+              className="p-4 sm:p-6 flex items-center justify-between shrink-0"
+              style={{ borderBottom: '1.5px solid var(--border)' }}
+            >
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-blue/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-brand-blue">
-                  <Book size={20} className="sm:w-6 sm:h-6" />
+                <div
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center"
+                  style={{ background: 'rgba(37,99,235,0.1)', color: 'var(--blue)' }}
+                >
+                  <Book size={20} />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-lg sm:text-2xl font-extrabold text-slate-700 dark:text-slate-200 truncate">{selectedTopic.title}</h2>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[8px] sm:text-[10px]">{selectedTopic.category}</span>
+                  <h2 className="text-lg sm:text-2xl font-black truncate" style={{ color: 'var(--text)' }}>{selectedTopic.title}</h2>
+                  <span className="mono-label">{selectedTopic.category}</span>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => { soundService.playBoop(); setSelectedTopic(null); }}
-                className="p-2 sm:p-3 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-2xl text-slate-400 hover:text-brand-red transition-all"
+                className="p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all"
+                style={{ background: 'var(--bg3)', color: 'var(--text2)' }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--error)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--text2)'}
               >
-                <X size={20} className="sm:w-6 sm:h-6" />
+                <X size={20} />
               </button>
             </div>
 
@@ -393,13 +429,16 @@ const Library: React.FC = () => {
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 scrollbar-hide">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 h-full">
                 {/* Visual Area */}
-                <div className="lg:col-span-7 bg-slate-50 dark:bg-slate-950 rounded-[24px] sm:rounded-[32px] border-4 border-slate-100 dark:border-slate-800 p-2 sm:p-4 aspect-square lg:aspect-auto lg:h-full relative overflow-hidden flex items-center justify-center">
+                <div
+                  className="lg:col-span-7 rounded-[24px] sm:rounded-[32px] p-2 sm:p-4 aspect-square lg:aspect-auto lg:h-full relative overflow-hidden flex items-center justify-center"
+                  style={{ background: 'var(--bg2)', border: '1.5px solid var(--border)' }}
+                >
                   <div className="w-full h-full relative">
                     {liveVisual?.type === VisualType.PLOT && liveVisual.plotData && <PlotVis data={liveVisual.plotData} />}
                     {liveVisual?.type === VisualType.PLOT3D && liveVisual.plot3DData && <Plot3DVis data={liveVisual.plot3DData} />}
                     {liveVisual?.type === VisualType.GRAPH && liveVisual.graphData && <GraphVis data={liveVisual.graphData} />}
                     {liveVisual?.type === VisualType.MATRIX && liveVisual.matrixData && (
-                      selectedTopic.id === 'matrix-transform' 
+                      selectedTopic.id === 'matrix-transform'
                         ? <MatrixSpaceVis data={liveVisual.matrixData} />
                         : <MatrixVis data={liveVisual.matrixData} />
                     )}
@@ -407,47 +446,54 @@ const Library: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Controls & Explanation Area */}
+                {/* Controls & Explanation */}
                 <div className="lg:col-span-5 flex flex-col h-full">
                   <div className="mb-6 sm:mb-8">
-                    <h4 className="text-[10px] sm:text-xs font-black text-brand-blue uppercase tracking-[0.2em] mb-3 sm:mb-4">The Concept</h4>
-                    <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-bold leading-relaxed">
+                    <span className="mono-label mb-3 block" style={{ color: 'var(--blue)' }}>The Concept</span>
+                    <p className="text-base sm:text-lg font-bold leading-relaxed" style={{ color: 'var(--text2)' }}>
                       {selectedTopic.explanation}
                     </p>
                   </div>
 
                   {/* Interactive Controls */}
                   {selectedTopic.controls && selectedTopic.controls.length > 0 && (
-                    <div className="mb-6 sm:mb-8 p-4 sm:p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[24px] sm:rounded-[32px] border-2 border-slate-100 dark:border-slate-800">
+                    <div
+                      className="mb-6 sm:mb-8 p-4 sm:p-6 rounded-[24px] sm:rounded-[32px]"
+                      style={{ background: 'var(--bg3)', border: '1.5px solid var(--border)' }}
+                    >
                       <div className="flex items-center gap-2 mb-4 sm:mb-6">
-                        <Settings2 size={16} className="text-brand-blue" />
-                        <h4 className="text-[10px] sm:text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Interactive Controls</h4>
+                        <Settings2 size={14} style={{ color: 'var(--blue)' }} />
+                        <span className="mono-label" style={{ color: 'var(--blue)' }}>Interactive Controls</span>
                       </div>
-                      <div className="space-y-4 sm:space-y-6">
+                      <div className="space-y-4 sm:space-y-5">
                         {selectedTopic.controls.map(control => (
                           <div key={control.id} className="space-y-2">
                             <div className="flex justify-between items-center">
-                              <label className="text-xs sm:text-sm font-extrabold text-slate-600 dark:text-slate-300">{control.label}</label>
-                              <span className="text-[10px] sm:text-xs font-mono font-bold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-lg">
+                              <label className="text-xs sm:text-sm font-bold" style={{ color: 'var(--text)' }}>{control.label}</label>
+                              <span
+                                className="font-mono font-bold text-xs px-2 py-0.5 rounded-lg"
+                                style={{ background: 'rgba(37,99,235,0.1)', color: 'var(--blue)' }}
+                              >
                                 {params[control.id]}
                               </span>
                             </div>
                             {control.type === 'slider' && (
-                              <input 
+                              <input
                                 type="range"
                                 min={control.min}
                                 max={control.max}
                                 step={control.step}
                                 value={params[control.id]}
                                 onChange={(e) => handleParamChange(control.id, parseFloat(e.target.value))}
-                                className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-blue"
+                                className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-brand-blue"
+                                style={{ background: 'var(--border2)' }}
                               />
                             )}
                             {control.type === 'select' && (
-                              <select 
+                              <select
                                 value={params[control.id]}
                                 onChange={(e) => handleParamChange(control.id, e.target.value)}
-                                className="w-full p-2 sm:p-3 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm sm:text-base text-slate-600 dark:text-slate-300 outline-none focus:border-brand-blue"
+                                className="ds-input text-sm"
                               >
                                 {control.options?.map(opt => (
                                   <option key={opt} value={opt}>{opt}</option>
@@ -456,14 +502,17 @@ const Library: React.FC = () => {
                             )}
                           </div>
                         ))}
-                        <button 
+                        <button
                           onClick={() => {
                             soundService.playBoop();
                             const reset: Record<string, any> = {};
                             selectedTopic.controls?.forEach(c => reset[c.id] = c.defaultValue);
                             setParams(reset);
                           }}
-                          className="flex items-center gap-2 text-[10px] font-black text-slate-400 hover:text-brand-blue transition-colors uppercase tracking-widest"
+                          className="flex items-center gap-2 mono-label transition-colors"
+                          style={{ color: 'var(--text3)' }}
+                          onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--blue)'}
+                          onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.color = 'var(--text3)'}
                         >
                           <RefreshCcw size={12} />
                           Reset Parameters
@@ -472,10 +521,10 @@ const Library: React.FC = () => {
                     </div>
                   )}
 
-                  <div className="mt-auto pt-4 sm:pt-8">
-                    <button 
+                  <div className="mt-auto pt-4 sm:pt-6">
+                    <button
                       onClick={() => { soundService.playBoop(); setSelectedTopic(null); }}
-                      className="w-full py-3 sm:py-4 bg-brand-blue text-white rounded-xl sm:rounded-2xl font-extrabold shadow-[0_4px_0_#1899D6] hover:translate-y-0.5 hover:shadow-none transition-all flex items-center justify-center gap-2"
+                      className="btn-cta w-full"
                     >
                       Got it!
                     </button>
