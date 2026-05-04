@@ -393,10 +393,8 @@ const Library: React.FC = () => {
 
       {/* Detail Modal */}
       {selectedTopic && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300" style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}>
-          <div
-            className="ds-card w-full max-w-6xl h-[95dvh] max-h-[95dvh] rounded-[32px] sm:rounded-[40px] flex flex-col overflow-hidden animate-in zoom-in-95 duration-300"
-          >
+        <div className="fixed inset-0 md:left-[240px] z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in duration-300">
+          <div className="bg-white dark:bg-slate-900 w-full max-w-6xl h-[95dvh] max-h-[95dvh] rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300">
             {/* Modal Header */}
             <div
               className="p-4 sm:p-6 flex items-center justify-between shrink-0"
