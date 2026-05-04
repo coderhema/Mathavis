@@ -747,7 +747,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                             </button>
                         </div>
                         
-                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all ${(inputText.trim() || capturedImage) && !isLoading ? 'bg-brand-green text-white shadow-[0_4px_0_#46A302] hover:translate-y-1 hover:shadow-none' : 'cursor-not-allowed' + '' }`}><Send size={20} /></button>
+                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all ${(inputText.trim() || capturedImage) && !isLoading ? 'bg-brand-green text-white shadow-[0_4px_0_#46A302] hover:translate-y-1 hover:shadow-none' : 'cursor-not-allowed opacity-40'}`} style={(inputText.trim() || capturedImage) && !isLoading ? {} : { background: 'var(--bg3)' }}><Send size={20} /></button>
                     </div>
                 </div>
             </div>
