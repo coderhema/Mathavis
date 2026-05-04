@@ -755,7 +755,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
         {/* Artifact Expansion Modal */}
         {expandedArtifact && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-12 animate-in fade-in duration-300" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)' }}>
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-12 animate-in fade-in duration-300" style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(16px)' }}>
                 <div className="ds-card w-full h-full max-w-6xl rounded-[32px] sm:rounded-[40px] flex flex-col overflow-y-auto overflow-x-hidden scrollbar-hide relative">
                     <button 
                         onClick={() => { soundService.playBoop(); setExpandedArtifact(null); }}

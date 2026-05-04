@@ -25,7 +25,7 @@ const PlotVis: React.FC<PlotVisProps> = ({ data, isPreview }) => {
 
   if (isPreview) {
     return (
-      <div className="w-full h-full bg-white dark:bg-slate-900 p-1">
+      <div className="w-full h-full p-1" style={{ background: 'var(--bg)' }}>
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={data.points}>
             <Line 
@@ -46,34 +46,37 @@ const PlotVis: React.FC<PlotVisProps> = ({ data, isPreview }) => {
     <div className="w-full h-full flex flex-col items-center justify-center p-4 group">
       <div className="w-full flex justify-between items-center mb-4 px-2">
          <div className="flex items-center gap-2">
-           <h3 className="text-sm font-bold text-slate-600 dark:text-slate-300 font-mono bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">{data.label}</h3>
+           <h3 className="text-sm font-bold font-mono px-3 py-1.5 rounded-xl border" style={{ color: 'var(--text2)', background: 'var(--bg3)', borderColor: 'var(--border)' }}>{data.label}</h3>
            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
              <button 
                onClick={() => setShowArea(!showArea)}
-               className={`p-1.5 rounded-lg border transition-all shadow-sm ${showArea ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-brand-blue'}`}
+               className="p-1.5 rounded-lg border transition-all shadow-sm"
+               style={showArea ? { background: '#1CB0F6', color: '#fff', borderColor: '#1CB0F6' } : { background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }}
                title="Toggle Area"
              >
                <Layers size={14} />
              </button>
              <button 
                onClick={() => setShowPoints(!showPoints)}
-               className={`p-1.5 rounded-lg border transition-all shadow-sm ${showPoints ? 'bg-brand-blue text-white border-brand-blue' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:text-brand-blue'}`}
+               className="p-1.5 rounded-lg border transition-all shadow-sm"
+               style={showPoints ? { background: '#1CB0F6', color: '#fff', borderColor: '#1CB0F6' } : { background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }}
                title="Toggle Points"
              >
                <Circle size={14} />
              </button>
              <button 
                onClick={handleResetZoom}
-               className="p-1.5 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-all shadow-sm"
+               className="p-1.5 rounded-lg border transition-all shadow-sm"
+               style={{ background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }}
                title="Reset Zoom"
              >
                <RotateCcw size={14} />
              </button>
            </div>
          </div>
-         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Drag handle to zoom interval</span>
+         <span className="text-[10px] font-bold uppercase tracking-tighter" style={{ color: 'var(--text3)' }}>Drag handle to zoom interval</span>
       </div>
-      <div className="w-full h-[300px] md:h-[400px] bg-white dark:bg-slate-900 rounded-3xl shadow-sm border-2 border-slate-100 dark:border-slate-800 p-2 md:p-4 transition-colors">
+      <div className="w-full h-[300px] md:h-[400px] rounded-3xl shadow-sm border-2 p-2 md:p-4 transition-colors" style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}>
         <ResponsiveContainer key={zoomKey} width="100%" height="100%">
           <ComposedChart data={data.points} margin={{ top: 5, right: 30, bottom: 5, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />

@@ -175,31 +175,32 @@ const GraphVis: React.FC<GraphVisProps> = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-full bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden relative transition-colors group">
+    <div className="w-full h-full rounded-2xl overflow-hidden relative transition-colors group" style={{ background: 'var(--bg2)', border: '2px solid var(--border)' }}>
       <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-sm" style={{ background: 'var(--bg)', color: 'var(--text3)', border: '1px solid var(--border)' }}>
           Interactive Graph
         </div>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={() => setIsPaused(!isPaused)}
-            className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm"
+            className="p-1.5 rounded-lg border transition-colors shadow-sm"
+            style={{ background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }}
             title={isPaused ? "Resume Simulation" : "Pause Simulation"}
           >
             {isPaused ? <Play size={14} fill="currentColor" /> : <Pause size={14} fill="currentColor" />}
           </button>
-          <button onClick={() => handleZoom(1.5)} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Zoom In">
+          <button onClick={() => handleZoom(1.5)} className="p-1.5 rounded-lg border transition-colors shadow-sm" style={{ background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }} title="Zoom In">
              <ZoomIn size={14} />
           </button>
-          <button onClick={() => handleZoom(0.6)} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Zoom Out">
+          <button onClick={() => handleZoom(0.6)} className="p-1.5 rounded-lg border transition-colors shadow-sm" style={{ background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }} title="Zoom Out">
              <ZoomOut size={14} />
           </button>
-          <button onClick={handleResetZoom} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Reset View">
+          <button onClick={handleResetZoom} className="p-1.5 rounded-lg border transition-colors shadow-sm" style={{ background: 'var(--bg)', color: 'var(--text3)', borderColor: 'var(--border)' }} title="Reset View">
              <Maximize size={14} />
           </button>
         </div>
       </div>
-      <div className="absolute bottom-3 left-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur px-2 py-1 rounded-lg text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 pointer-events-none">
+      <div className="absolute bottom-3 left-3 backdrop-blur px-2 py-1 rounded-lg text-[9px] font-bold pointer-events-none" style={{ background: 'var(--bg)', color: 'var(--text3)', border: '1px solid var(--border)' }}>
         Pinch or Scroll to Zoom • Drag to Pan
       </div>
       <svg ref={svgRef} className="w-full h-full cursor-all-scroll" />

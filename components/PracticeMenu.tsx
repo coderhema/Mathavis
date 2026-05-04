@@ -76,41 +76,57 @@ interface PracticeMenuProps {
 
 const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300 relative">
-      {/* Technical Grid Background */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#3b82f6 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-      
+    <div
+      className="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 dark-transition relative"
+      style={{ background: 'var(--bg2)', color: 'var(--text)' }}
+    >
+      {/* Subtle dot-grid background */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{ backgroundImage: 'radial-gradient(var(--blue) 1px, transparent 1px)', backgroundSize: '30px 30px' }}
+      />
+
       <div className="max-w-6xl mx-auto relative z-10">
+        {/* Header row */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-              <span className="text-brand-blue font-black uppercase tracking-[0.3em] text-[10px]">System Status: Active</span>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--blue)' }} />
+              <span className="mono-label" style={{ color: 'var(--blue)' }}>System Status: Active</span>
             </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white mb-1">Practice Lab</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold">Select a training protocol to begin</p>
+            <h2
+              className="text-3xl sm:text-4xl font-black mb-1"
+              style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text)' }}
+            >
+              Practice Lab
+            </h2>
+            <p style={{ color: 'var(--text2)', fontWeight: 700 }}>Select a training protocol to begin</p>
           </div>
-          
+
           <div className="flex flex-wrap gap-3 md:gap-4">
-            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
-              <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Global Rank</span>
-              <span className="text-lg font-black text-brand-yellow">#1,204</span>
+            <div
+              className="min-w-[140px] flex-1 px-4 py-2 rounded-xl ds-card"
+              style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+            >
+              <span className="mono-label block mb-1">Global Rank</span>
+              <span className="text-lg font-black" style={{ color: 'var(--accent)', fontFamily: "'Space Grotesk', sans-serif" }}>#1,204</span>
             </div>
-            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
-              <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Accuracy</span>
-              <span className="text-lg font-black text-brand-green">94%</span>
+            <div
+              className="min-w-[140px] flex-1 px-4 py-2 rounded-xl ds-card"
+              style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
+            >
+              <span className="mono-label block mb-1">Accuracy</span>
+              <span className="text-lg font-black" style={{ color: 'var(--success)', fontFamily: "'Space Grotesk', sans-serif" }}>94%</span>
             </div>
           </div>
         </div>
 
-        {/* Bento Grid Layout */}
+        {/* Mode cards grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[200px]">
           {MODES.map((mode, idx) => {
-            // Different spans for bento effect
             const isLarge = idx === 0;
             const isWide = idx === 2;
-            
+
             return (
               <motion.button
                 key={mode.id}
@@ -121,32 +137,41 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
                   onSelectMode(mode.id);
                 }}
                 className={`
-                  group relative rounded-[24px] p-6 text-left border-2 border-slate-200 dark:border-slate-800 
-                  bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-xl transition-all overflow-hidden
-                  hover:border-brand-blue/50 hover:bg-slate-100 dark:hover:bg-slate-800/50
+                  group relative rounded-[20px] p-6 text-left transition-all overflow-hidden
                   ${isLarge ? 'md:row-span-2 md:col-span-1' : ''}
                   ${isWide ? 'md:col-span-2' : ''}
                 `}
+                style={{
+                  background: 'var(--bg)',
+                  border: '1px solid var(--border)',
+                  borderBottom: '4px solid var(--border2)',
+                  boxShadow: 'var(--shadow)',
+                }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--blue)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg3)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; (e.currentTarget as HTMLElement).style.background = 'var(--bg)'; }}
               >
-                {/* Scanning Line Effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-blue/5 to-transparent h-20 -translate-y-full pointer-events-none" />
-                
                 <div className="flex flex-col h-full justify-between relative z-10">
                   <div className="flex items-start justify-between">
                     <div className={`p-3 ${mode.color} rounded-xl shadow-lg text-white`}>
                       <mode.icon size={isLarge ? 40 : 24} strokeWidth={2.5} />
                     </div>
                     <div className="text-right">
-                      <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{mode.difficulty}</div>
-                      <div className="text-xs font-black text-brand-green">{mode.xpBonus}</div>
+                      <div className="mono-label mb-1">{mode.difficulty}</div>
+                      <div className="text-xs font-black" style={{ color: 'var(--success)', fontFamily: "'Space Grotesk', sans-serif" }}>{mode.xpBonus}</div>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className={`${isLarge ? 'text-3xl' : 'text-xl'} font-black text-slate-800 dark:text-white mb-2 group-hover:text-brand-blue transition-colors`}>
+                    <h3
+                      className={`${isLarge ? 'text-3xl' : 'text-xl'} font-black mb-2 transition-colors`}
+                      style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text)' }}
+                    >
                       {mode.title}
                     </h3>
-                    <p className={`text-slate-500 dark:text-slate-400 font-bold leading-relaxed ${isLarge ? 'text-base' : 'text-xs'}`}>
+                    <p
+                      className={`font-bold leading-relaxed ${isLarge ? 'text-base' : 'text-xs'}`}
+                      style={{ color: 'var(--text2)' }}
+                    >
                       {mode.description}
                     </p>
                   </div>
@@ -154,10 +179,17 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
                   <div className="mt-4 flex items-center justify-between">
                     <div className="flex gap-1">
                       {[1, 2, 3].map(i => (
-                        <div key={i} className={`w-1 h-1 rounded-full ${i <= (idx % 3 + 1) ? 'bg-brand-blue' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                        <div
+                          key={i}
+                          className="w-1 h-1 rounded-full"
+                          style={{ background: i <= (idx % 3 + 1) ? 'var(--blue)' : 'var(--dot)' }}
+                        />
                       ))}
                     </div>
-                    <div className="text-[10px] font-black text-brand-blue uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <div
+                      className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 mono-label"
+                      style={{ color: 'var(--blue)' }}
+                    >
                       Initialize <ArrowRight size={10} />
                     </div>
                   </div>
@@ -167,33 +199,34 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
           })}
         </div>
 
-        {/* Status Footer */}
-        <div className="mt-8 p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 overflow-hidden relative shadow-lg">
-          <div className="absolute top-0 left-0 w-1 h-full bg-brand-yellow" />
+        {/* Weekly progress footer */}
+        <div
+          className="mt-8 p-5 sm:p-6 rounded-[20px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 overflow-hidden relative"
+          style={{
+            background: 'var(--bg)',
+            border: '1px solid var(--border)',
+            borderBottom: '4px solid var(--border2)',
+            boxShadow: 'var(--shadow)',
+          }}
+        >
+          <div className="absolute top-0 left-0 w-1 h-full rounded-l-[20px]" style={{ background: 'var(--accent)' }} />
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 bg-brand-yellow/10 rounded-xl flex items-center justify-center text-brand-yellow">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--blue-tint2)', color: 'var(--accent)' }}>
               <Trophy size={24} />
             </div>
             <div>
-              <h4 className="text-lg font-black text-slate-800 dark:text-white">Weekly Protocol Progress</h4>
-              <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Target: 5 sessions remaining for rank promotion</p>
+              <h4 className="text-lg font-black" style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--text)' }}>Weekly Protocol Progress</h4>
+              <p className="font-bold text-sm" style={{ color: 'var(--text2)' }}>Target: 5 sessions remaining for rank promotion</p>
             </div>
           </div>
           <div className="flex items-center gap-4 w-full md:w-auto relative z-10">
-            <div className="flex-1 md:w-48 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-brand-yellow w-[60%] rounded-full" />
+            <div className="flex-1 md:w-48 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg3)' }}>
+              <div className="h-full w-[60%] rounded-full" style={{ background: 'var(--accent)' }} />
             </div>
-            <span className="text-brand-yellow font-black text-sm">60%</span>
+            <span className="font-black text-sm" style={{ color: 'var(--accent)', fontFamily: "'Space Grotesk', sans-serif" }}>60%</span>
           </div>
         </div>
       </div>
-      
-      <style>{`
-        @keyframes scan {
-          from { transform: translateY(-100%); }
-          to { transform: translateY(400%); }
-        }
-      `}</style>
     </div>
   );
 };
