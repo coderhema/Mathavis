@@ -415,7 +415,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
   const currentSuggestedActions = [...messages].reverse().find(m => m.role === 'model')?.suggestedActions || [];
 
   return (
-    <div className="flex min-h-0 flex-col h-full w-full min-w-0 bg-[#f8fafc] dark:bg-slate-950 relative isolate overflow-x-hidden transition-colors duration-300">
+    <div className="flex min-h-0 flex-col h-full w-full min-w-0 relative isolate overflow-x-hidden dark-transition" style={{ background: 'var(--bg2)' }}>
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
             <div 
@@ -423,15 +423,15 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 onClick={() => setIsHistoryOpen(false)}
             >
                 <div 
-                    className="absolute left-0 top-0 bottom-0 w-[calc(100vw-1rem)] max-w-80 sm:w-80 bg-white dark:bg-slate-900 shadow-2xl p-4 sm:p-6 border-r border-slate-200 dark:border-slate-800 flex flex-col overflow-y-auto overflow-x-hidden animate-in slide-in-from-left duration-300"
+                    className="absolute left-0 top-0 bottom-0 w-[calc(100vw-1rem)] max-w-80 sm:w-80 shadow-2xl p-4 sm:p-6 flex flex-col overflow-y-auto overflow-x-hidden animate-in slide-in-from-left duration-300" style={{ background: 'var(--bg)', borderRight: '1.5px solid var(--border)' }}
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-2">
                             <History className="text-brand-blue" size={24} />
-                            <h2 className="text-xl font-extrabold text-slate-700 dark:text-slate-200">Math Coop</h2>
+                            <h2 className="text-xl font-extrabold" style={{ color: 'var(--text)' }}>Math Coop</h2>
                         </div>
-                        <button onClick={() => { soundService.playBoop(); setIsHistoryOpen(false); }} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                        <button onClick={() => { soundService.playBoop(); setIsHistoryOpen(false); }} className="p-2 transition-colors" style={{ color: 'var(--text3)' }}>
                             <X size={24} />
                         </button>
                     </div>
@@ -445,16 +445,17 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                     </button>
 
                     <div className="flex-1 overflow-y-auto space-y-3 scrollbar-hide pr-2">
-                        <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-2 px-1">Recent Sessions</p>
+                        <p className="mono-label mb-2 px-1">Recent Sessions</p>
                         {sessions.map(session => (
                             <div 
                                 key={session.id}
                                 onClick={() => { soundService.playBoop(); setCurrentSessionId(session.id); setIsHistoryOpen(false); }}
                                 className={`group flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
                                     session.id === currentSessionId 
-                                    ? 'bg-blue-50 dark:bg-brand-blue/10 border-brand-blue' 
-                                    : 'bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700'
+                                    ? 'border-brand-blue' 
+                                    : 'hover:border-[var(--border2)]'
                                 }`}
+                                style={{ background: 'var(--bg)', borderColor: session.id === currentSessionId ? undefined : 'var(--border)' }}
                             >
                                 <div className="flex-1 min-w-0 pr-2">
                                     {editingSessionId === session.id ? (
@@ -467,7 +468,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                                     if (e.key === 'Enter') renameSession(session.id, editingTitle);
                                                     if (e.key === 'Escape') setEditingSessionId(null);
                                                 }}
-                                                className="w-full bg-white dark:bg-slate-700 border-2 border-brand-blue rounded-lg px-2 py-1 text-sm font-bold text-slate-700 dark:text-slate-200 outline-none"
+                                                className="ds-input text-sm py-1"
                                             />
                                             <button 
                                                 onClick={() => { soundService.playBoop(); renameSession(session.id, editingTitle); }}
@@ -478,10 +479,10 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                         </div>
                                     ) : (
                                         <>
-                                            <p className={`font-bold truncate text-sm ${session.id === currentSessionId ? 'text-brand-blue' : 'text-slate-600 dark:text-slate-300'}`}>
+                                            <p className={`font-bold truncate text-sm`} style={{ color: session.id === currentSessionId ? 'var(--blue)' : 'var(--text)' }}>
                                                 {session.title}
                                             </p>
-                                            <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-400 font-bold uppercase">
+                                            <div className="flex items-center gap-1.5 mt-1 mono-hint">
                                                 <Clock size={10} />
                                                 {new Date(session.updatedAt).toLocaleDateString()}
                                             </div>
@@ -496,14 +497,14 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                             setEditingSessionId(session.id); 
                                             setEditingTitle(session.title); 
                                         }}
-                                        className="p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 hover:text-brand-blue hover:border-brand-blue transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                                        className="p-2.5 rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text3)' }}
                                         title="Rename"
                                     >
                                         <Edit2 size={16} />
                                     </button>
                                     <button 
                                         onClick={(e) => { soundService.playBoop(); deleteSession(e, session.id); }}
-                                        className="p-2.5 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-slate-400 hover:text-brand-red hover:border-brand-red transition-all shadow-sm opacity-0 group-hover:opacity-100"
+                                        className="p-2.5 rounded-xl transition-all shadow-sm opacity-0 group-hover:opacity-100" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text3)' }}
                                         title="Delete"
                                     >
                                         <Trash2 size={16} />
@@ -517,12 +518,12 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         )}
 
         {/* Toolbar Header */}
-        <div className="sticky top-0 z-[80] w-full min-w-0 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md">
+        <div className="sticky top-0 z-[80] w-full min-w-0 px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3 backdrop-blur-md" style={{ borderBottom: '1.5px solid var(--border)', background: 'var(--bg-glass, var(--bg))' }}>
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-wrap">
                 {onBackToMenu && (
                     <button 
                         onClick={() => { soundService.playBoop(); onBackToMenu(); }}
-                        className="p-3 text-slate-400 hover:text-brand-blue bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-2xl transition-all shadow-sm flex items-center gap-2"
+                        className="p-3 rounded-2xl transition-all shadow-sm flex items-center gap-2" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', color: 'var(--text3)' }}
                         title="Back to Menu"
                     >
                         <ArrowRight size={20} className="rotate-180" />
@@ -531,12 +532,12 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 )}
                 <button 
                     onClick={() => { soundService.playBoop(); setIsHistoryOpen(true); }}
-                    className="p-3 text-slate-400 hover:text-brand-blue bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-800 rounded-2xl transition-all shadow-sm"
+                    className="p-3 rounded-2xl transition-all shadow-sm" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', color: 'var(--text3)' }}
                     title="History"
                 >
                     <History size={20} />
                 </button>
-                <div className="h-8 w-[2px] bg-slate-100 dark:bg-slate-800 mx-1" />
+                <div className="h-8 w-[2px] mx-1" style={{ background: 'var(--border)' }} />
                 <button 
                     onClick={handleNewChat}
                     className="flex items-center gap-2 px-4 py-2 bg-brand-green text-white rounded-xl font-bold shadow-[0_3px_0_#46A302] hover:translate-y-0.5 hover:shadow-none transition-all text-sm"
@@ -547,7 +548,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
             </div>
 
             <div className="flex items-center gap-4">
-                <div className="hidden sm:flex items-center gap-2 text-slate-400 dark:text-slate-600">
+                <div className="hidden sm:flex items-center gap-2" style={{ color: 'var(--text3)' }}>
                     {isSaving ? (
                         <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest animate-pulse text-brand-blue">
                             <Save size={12} /> Syncing...
@@ -560,7 +561,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 </div>
                 <button 
                     onClick={handleClearCurrentHistory}
-                    className="p-2 text-slate-300 hover:text-brand-red transition-colors"
+                    className="p-2 transition-colors" style={{ color: 'var(--text3)' }}
                     title="Clear current session"
                 >
                     <Eraser size={20} />
@@ -584,11 +585,14 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                     />
                                 </div>
                             )}
-                            {msg.role === 'user' && <div className="w-10 h-10 rounded-xl flex items-center justify-center border-2 bg-indigo-100 dark:bg-indigo-900 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400"><User size={20} /></div>}
-                            <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">{msg.role === 'user' ? 'You' : 'Prof. Cluck'}</span>
+                            {msg.role === 'user' && <div className="w-10 h-10 rounded-xl flex items-center justify-center border-2" style={{ background: 'rgba(99,102,241,0.12)', borderColor: 'rgba(99,102,241,0.3)', color: '#6366f1' }}><User size={20} /></div>}
+                            <span className="mono-label mb-2">{msg.role === 'user' ? 'You' : 'Prof. Cluck'}</span>
                         </div>
 
-                        <div className={`w-full max-w-full sm:max-w-[85%] min-w-0 break-words p-4 sm:p-5 rounded-3xl shadow-sm text-base sm:text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 rounded-tl-sm ml-0 sm:ml-4'}`}>
+                        <div
+                            className={`w-full max-w-full sm:max-w-[85%] min-w-0 break-words p-4 sm:p-5 rounded-3xl shadow-sm text-base sm:text-lg leading-relaxed border-b-4 relative transition-colors ${msg.role === 'user' ? 'bg-indigo-500 text-white border-indigo-700 rounded-tr-sm' : 'rounded-tl-sm ml-0 sm:ml-4'}`}
+                            style={msg.role === 'model' ? { background: 'var(--bg)', borderColor: 'var(--border)', color: 'var(--text)' } : {}}
+                        >
                             {msg.image && (
                                 <div className="mb-4 rounded-2xl overflow-hidden border-2 border-white/20 shadow-lg">
                                     <img src={msg.image} alt="Submitted math" className="w-full h-auto object-contain max-h-[300px]" />
@@ -598,10 +602,10 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         </div>
 
                         {msg.visual && msg.visual.type !== VisualType.NONE && (
-                            <div className="mt-4 ml-0 sm:ml-4 w-full max-w-full sm:max-w-2xl min-w-0 bg-white dark:bg-slate-900 p-2 rounded-3xl border-b-4 border-slate-200 dark:border-slate-800 shadow-[0_8px_0_rgb(226,232,240)] dark:shadow-[0_8px_0_rgb(30,41,59)] overflow-hidden relative group">
+                            <div className="mt-4 ml-0 sm:ml-4 w-full max-w-full sm:max-w-2xl min-w-0 p-2 rounded-3xl overflow-hidden relative group" style={{ background: 'var(--bg)', borderBottom: '4px solid var(--border)', boxShadow: '0 8px 0 var(--border)' }}>
                                 <button 
                                     onClick={() => { soundService.playBoop(); setExpandedArtifact(msg); }}
-                                    className="absolute top-4 right-4 z-20 p-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 opacity-0 group-hover:opacity-100 transition-all hover:scale-110"
+                                    className="absolute top-4 right-4 z-20 p-2 backdrop-blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110" style={{ background: 'var(--bg-glass, var(--bg))', border: '1px solid var(--border)' }}
                                     title="Expand"
                                 >
                                     <Maximize2 size={20} className="text-brand-blue" />
@@ -612,7 +616,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                         <>
                                             <Plot3DVis data={msg.visual.plot3DData} />
                                             {msg.visual.plotData && (
-                                                <div className="absolute top-4 right-4 w-24 h-24 md:w-32 md:h-32 z-20 bg-white/90 dark:bg-slate-800/90 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden pointer-events-auto">
+                                                <div className="absolute top-4 right-4 w-24 h-24 md:w-32 md:h-32 z-20 rounded-2xl shadow-xl overflow-hidden pointer-events-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
                                                     <div className="absolute top-1 left-2 text-[8px] font-bold text-slate-400 uppercase tracking-tighter z-10">2D Preview</div>
                                                     <PlotVis data={msg.visual.plotData} isPreview={true} />
                                                 </div>
@@ -653,9 +657,9 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                              <div className="mb-[-10px] z-10">
                                  <VoxelChicken size={50} emotion="thinking" isAnimated={true} isSpeaking={false} />
                              </div>
-                             <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-2">Thinking...</span>
+                             <span className="mono-label mb-2">Thinking...</span>
                          </div>
-                        <div className="bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 p-4 rounded-3xl rounded-tl-sm shadow-sm ml-4"><Loader2 className="animate-spin text-brand-green" size={24} /></div>
+                        <div className="p-4 rounded-3xl rounded-tl-sm shadow-sm ml-4" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)' }}><Loader2 className="animate-spin text-brand-green" size={24} /></div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -664,12 +668,12 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
         {/* Input Dock */}
         <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col">
-            <div className="h-12 bg-gradient-to-t from-slate-100 dark:from-slate-950 to-transparent pointer-events-none" />
+            <div className="h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, var(--bg2), transparent)' }} />
             
             {capturedImage && (
                 <div className="max-w-4xl mx-auto w-full min-w-0 px-4 mb-2 animate-in slide-in-from-bottom-2">
-                    <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl border-2 border-brand-blue flex items-center gap-3 shadow-lg">
-                        <div className="w-16 h-16 rounded-xl overflow-hidden border-2 border-slate-100 relative group flex items-center justify-center bg-slate-50 dark:bg-slate-800">
+                    <div className="p-2 rounded-2xl border-2 border-brand-blue flex items-center gap-3 shadow-lg" style={{ background: 'var(--bg)' }}>
+                        <div className="w-16 h-16 rounded-xl overflow-hidden border-2 relative group flex items-center justify-center" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                             {capturedImage.startsWith('data:application/pdf') ? (
                                 <div className="flex flex-col items-center justify-center">
                                     <Save size={24} className="text-brand-red" />
@@ -685,22 +689,22 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                 <X size={20} />
                             </button>
                         </div>
-                        <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+                        <p className="text-xs font-bold" style={{ color: 'var(--text2)' }}>
                             {capturedImage.startsWith('data:application/pdf') ? 'PDF attached for practice. Professor Cluck will tailor the session!' : 'Math photo attached. What should Professor Cluck do with it?'}
                         </p>
                     </div>
                 </div>
             )}
 
-            <div className="bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-2 pt-2 px-4 overflow-x-hidden">
+            <div className="backdrop-blur-md pb-2 pt-2 px-4 overflow-x-hidden" style={{ background: 'var(--bg3)', borderTop: '1.5px solid var(--border)' }}>
                 <div className="max-w-4xl mx-auto w-full min-w-0 flex flex-col gap-3">
                     {!isLoading && !showKeyboard && currentSuggestedActions.length > 0 && (
                         <div className="flex flex-col gap-2 mb-2">
                             <div className="flex items-center justify-between px-2">
-                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Suggestions</span>
+                                <span className="mono-label">Suggestions</span>
                                 <button 
                                     onClick={() => { soundService.playBoop(); setIsSuggestionsCollapsed(!isSuggestionsCollapsed); }}
-                                    className="text-[10px] font-bold text-brand-blue hover:underline"
+                                    className="mono-label hover:underline" style={{ color: 'var(--blue)' }}
                                 >
                                     {isSuggestionsCollapsed ? 'Show' : 'Hide'}
                                 </button>
@@ -711,7 +715,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                         <button 
                                             key={idx} 
                                             onClick={() => handleSend(action)} 
-                                            className="whitespace-nowrap px-5 py-3 rounded-2xl bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 shadow-[0_4px_0_#e2e8f0] dark:shadow-[0_4px_0_#1e293b] hover:translate-y-1 hover:shadow-none hover:border-brand-blue hover:text-brand-blue font-bold text-slate-600 dark:text-slate-300 transition-all text-sm flex items-center gap-2 group shrink-0"
+                                            className="chip whitespace-nowrap text-sm flex items-center gap-2 group shrink-0 hover:translate-y-1 transition-all"
                                         >
                                             {action} <ArrowRight size={16} className="opacity-0 md:group-hover:opacity-100 transition-opacity" />
                                         </button>
@@ -722,7 +726,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                     )}
                     <div className="flex items-center gap-2 md:gap-3 pb-4">
                         <button 
-                            className="p-2.5 md:p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-slate-400 hover:text-brand-blue transition-colors" 
+                            className="p-2.5 md:p-3 rounded-2xl transition-colors" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', color: 'var(--text3)' }} 
                             title="Snap Math" 
                             onClick={() => { soundService.playBoop(); fileInputRef.current?.click(); }}
                         >
@@ -731,19 +735,19 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         </button>
 
                         <div className="flex-1 relative">
-                            <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText, capturedImage)} placeholder="Ask Prof. Cluck..." disabled={isLoading} className="w-full p-3 md:p-4 pr-10 md:pr-12 rounded-2xl border-2 outline-none font-medium text-sm md:text-base text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 focus:border-brand-blue focus:shadow-[0_4px_0_#1CB0F6]" />
+                            <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSend(inputText, capturedImage)} placeholder="Ask Prof. Cluck..." disabled={isLoading} className="ds-input w-full p-3 md:p-4 pr-10 md:pr-12 text-sm md:text-base" />
                             <button 
                                 onClick={() => {
                                     soundService.playBoop();
                                     setShowKeyboard(!showKeyboard);
                                 }} 
-                                className={`absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-xl text-slate-400 hover:text-brand-blue ${showKeyboard ? 'text-brand-blue bg-blue-50 dark:bg-blue-900/30' : ''}`}
+                                className={`absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-xl transition-colors ${showKeyboard ? 'text-brand-blue' : ''}`} style={{ color: showKeyboard ? 'var(--blue)' : 'var(--text3)' }}
                             >
                                 {showKeyboard ? <X size={18} /> : <Keyboard size={18} />}
                             </button>
                         </div>
                         
-                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all ${(inputText.trim() || capturedImage) && !isLoading ? 'bg-brand-green text-white shadow-[0_4px_0_#46A302] hover:translate-y-1 hover:shadow-none' : 'bg-slate-200 dark:bg-slate-800 text-slate-300 cursor-not-allowed'}`}><Send size={20} /></button>
+                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all ${(inputText.trim() || capturedImage) && !isLoading ? 'bg-brand-green text-white shadow-[0_4px_0_#46A302] hover:translate-y-1 hover:shadow-none' : 'cursor-not-allowed opacity-40'}`} style={(inputText.trim() || capturedImage) && !isLoading ? {} : { background: 'var(--bg3)' }}><Send size={20} /></button>
                     </div>
                 </div>
             </div>
@@ -752,34 +756,34 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
         {/* Artifact Expansion Modal */}
         {expandedArtifact && (
-            <div className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-xl flex items-center justify-center p-2 sm:p-4 md:p-12 animate-in fade-in duration-300">
-                <div className="bg-white dark:bg-slate-900 w-full h-full max-w-6xl rounded-[32px] sm:rounded-[40px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-y-auto overflow-x-hidden scrollbar-hide relative">
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 md:p-12 animate-in fade-in duration-300" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(16px)' }}>
+                <div className="ds-card w-full h-full max-w-6xl rounded-[32px] sm:rounded-[40px] flex flex-col overflow-y-auto overflow-x-hidden scrollbar-hide relative">
                     <button 
                         onClick={() => { soundService.playBoop(); setExpandedArtifact(null); }}
-                        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] p-3 sm:p-4 bg-slate-100 dark:bg-slate-800 rounded-xl sm:rounded-2xl text-slate-500 hover:text-brand-red transition-all shadow-lg"
+                        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all shadow-lg" style={{ background: 'var(--bg3)', color: 'var(--text2)' }}
                     >
                         <X size={24} className="sm:w-8 sm:h-8" />
                     </button>
                     
-                    <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4 shrink-0">
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-brand-blue/10 rounded-xl sm:rounded-2xl flex items-center justify-center">
+                    <div className="p-6 sm:p-8 flex items-center gap-4 shrink-0" style={{ borderBottom: '1.5px solid var(--border)' }}>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center" style={{ background: 'rgba(37,99,235,0.1)' }}>
                             <Maximize2 size={20} className="sm:w-6 sm:h-6 text-brand-blue" />
                         </div>
                         <div>
-                            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-700 dark:text-slate-200">Interactive Visualization</h2>
-                            <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[8px] sm:text-[10px]">Full Screen Mode</p>
+                            <h2 className="text-xl sm:text-2xl font-extrabold" style={{ color: 'var(--text)' }}>Interactive Visualization</h2>
+                            <p className="mono-label">Full Screen Mode</p>
                         </div>
                     </div>
 
-                    <div className="flex-1 min-h-[300px] sm:min-h-[400px] md:min-h-[600px] relative bg-slate-50 dark:bg-slate-950/50">
+                    <div className="flex-1 min-h-[300px] sm:min-h-[400px] md:min-h-[600px] relative" style={{ background: 'var(--bg2)' }}>
                         {expandedArtifact.visual?.type === VisualType.PLOT && expandedArtifact.visual.plotData && <PlotVis data={expandedArtifact.visual.plotData} />}
                         {expandedArtifact.visual?.type === VisualType.PLOT3D && expandedArtifact.visual.plot3DData && (
                             <>
                                 {expandedArtifact.visual.plotData ? (
                                     <>
                                         <PlotVis data={expandedArtifact.visual.plotData} />
-                                        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 w-24 h-24 sm:w-40 sm:h-40 z-20 bg-white/90 dark:bg-slate-800/90 rounded-2xl sm:rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden pointer-events-auto">
-                                            <div className="absolute top-1 left-2 sm:top-2 sm:left-3 text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tighter z-10">3D View</div>
+                                        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 w-24 h-24 sm:w-40 sm:h-40 z-20 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden pointer-events-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                                            <div className="absolute top-1 left-2 sm:top-2 sm:left-3 mono-label z-10">3D View</div>
                                             <Plot3DVis data={expandedArtifact.visual.plot3DData} isStatic={true} />
                                         </div>
                                     </>
@@ -817,21 +821,21 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         {expandedArtifact.visual?.type === VisualType.STEPS && expandedArtifact.visual.stepByStepData && <StepByStepVis data={expandedArtifact.visual.stepByStepData} />}
                     </div>
 
-                    <div className="p-6 sm:p-8 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0 relative group/text">
-                        <div className="flex items-center justify-between mb-4 sticky top-0 bg-slate-50 dark:bg-slate-800/50 py-2 z-10">
-                            <div className="flex items-center gap-2 text-brand-blue">
+                    <div className="p-6 sm:p-8 shrink-0 relative group/text" style={{ background: 'var(--bg3)', borderTop: '1.5px solid var(--border)' }}>
+                        <div className="flex items-center justify-between mb-4 sticky top-0 py-2 z-10" style={{ background: 'var(--bg3)' }}>
+                            <div className="flex items-center gap-2" style={{ color: 'var(--blue)' }}>
                                 <Edit2 size={16} />
                                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-widest">Professor's Explanation</span>
                             </div>
                             <button 
                                 onClick={() => handleRead(expandedArtifact.text)}
-                                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all font-bold text-[10px] sm:text-xs ${isReading ? 'bg-brand-red text-white shadow-lg' : 'bg-white dark:bg-slate-700 text-brand-blue border border-slate-200 dark:border-slate-600 shadow-sm hover:shadow-md'}`}
+                                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all font-bold text-[10px] sm:text-xs ${isReading ? 'bg-brand-red text-white shadow-lg' : 'shadow-sm hover:shadow-md'}`} style={isReading ? {} : { background: 'var(--bg)', color: 'var(--blue)', border: '1px solid var(--border)' }}
                             >
                                 {isReading ? <VolumeX size={14} /> : <Volume2 size={14} />}
                                 {isReading ? 'Stop Reading' : 'Read Aloud'}
                             </button>
                         </div>
-                        <div className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium leading-relaxed max-h-40 overflow-y-auto scrollbar-hide">
+                        <div className="text-sm sm:text-base font-medium leading-relaxed max-h-40 overflow-y-auto scrollbar-hide" style={{ color: 'var(--text2)' }}>
                             <FormattedText text={expandedArtifact.text} highlightIndex={readingSentenceIndex} />
                         </div>
                     </div>
