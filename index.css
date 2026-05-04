@@ -42,6 +42,13 @@
   /* Side panel */
   --sidebg:   #f8f7f4;
 
+  /* Overlay */
+  --overlay-bg:    rgba(0, 0, 0, 0.5);
+
+  /* Blue alpha tints */
+  --blue-tint:     rgba(37, 99, 235, 0.08);
+  --blue-tint2:    rgba(37, 99, 235, 0.12);
+
   /* Atmosphere */
   --mathfloat: #e8ecf1;
   --shadow:    0 4px 24px rgba(0, 0, 0, 0.07);
@@ -74,6 +81,11 @@
   --dotdone: #4caf84;
 
   --sidebg:   #181922;
+
+  --overlay-bg:    rgba(0, 0, 0, 0.6);
+
+  --blue-tint:     rgba(59, 130, 246, 0.08);
+  --blue-tint2:    rgba(59, 130, 246, 0.14);
 
   --mathfloat: #1a1d2e;
   --shadow:    0 4px 32px rgba(0, 0, 0, 0.4);
