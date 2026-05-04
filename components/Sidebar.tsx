@@ -34,7 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
           padding: '10px 14px',
           borderRadius: 12,
           border: isActive ? '1.5px solid var(--blue)' : '1.5px solid transparent',
-          background: isActive ? 'rgba(37,99,235,0.07)' : 'transparent',
+          background: isActive ? 'var(--blue-tint2)' : 'transparent',
           color: isActive ? 'var(--blue)' : 'var(--text2)',
           fontFamily: "'Space Grotesk', sans-serif",
           fontSize: 13,

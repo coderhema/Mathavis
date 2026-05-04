@@ -192,7 +192,7 @@ const App: React.FC = () => {
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 z-50 md:hidden"
-          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(4px)' }}
           onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}
         >
           <div
@@ -242,7 +242,7 @@ const App: React.FC = () => {
                       padding: '10px 14px',
                       borderRadius: 12,
                       border: isActive ? '1.5px solid var(--blue)' : '1.5px solid transparent',
-                      background: isActive ? 'rgba(37,99,235,0.07)' : 'transparent',
+                      background: isActive ? 'var(--blue-tint2)' : 'transparent',
                       color: isActive ? 'var(--blue)' : 'var(--text2)',
                       fontFamily: "'Space Grotesk', sans-serif",
                       fontSize: 13,
@@ -358,13 +358,13 @@ const App: React.FC = () => {
       {isTopicPromptOpen && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }}
+          style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(12px)' }}
         >
           <div className="ds-card w-full max-w-md p-6 sm:p-8 animate-in zoom-in-95 duration-300">
             <div className="flex items-center gap-4 mb-6">
               <div
                 className="w-12 h-12 rounded-2xl flex items-center justify-center"
-                style={{ background: 'rgba(37,99,235,0.1)' }}
+                style={{ background: 'var(--blue-tint2)' }}
               >
                 <Plus size={24} style={{ color: 'var(--blue)' }} />
               </div>

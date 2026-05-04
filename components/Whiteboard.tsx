@@ -84,7 +84,7 @@ const FormattedText: React.FC<{ text: string; highlightIndex?: number }> = ({ te
         const isHighlighted = sIdx === highlightIndex;
         
         return (
-          <span key={sIdx} className={isHighlighted ? "rounded px-1 transition-colors duration-300" : ""} style={isHighlighted ? { background: 'rgba(37,99,235,0.15)' } : undefined}>
+          <span key={sIdx} className={isHighlighted ? "rounded px-1 transition-colors duration-300" : ""} style={isHighlighted ? { background: 'var(--blue-tint2)' } : undefined}>
             {parts.map((part, i) => {
               if (!part) return null;
               
@@ -107,7 +107,7 @@ const FormattedText: React.FC<{ text: string; highlightIndex?: number }> = ({ te
               const isKeyword = MATH_KEYWORDS.some(k => k.toLowerCase() === part.toLowerCase());
               if (isKeyword) {
                 return (
-                  <span key={i} className="px-1 py-0.5 rounded font-bold underline-offset-4 decoration-2" style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--blue)' }}>
+                  <span key={i} className="px-1 py-0.5 rounded font-bold underline-offset-4 decoration-2" style={{ background: 'var(--blue-tint)', color: 'var(--blue)' }}>
                     {part}
                   </span>
                 );
@@ -420,7 +420,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         {isHistoryOpen && (
             <div 
                 className="fixed inset-0 z-50 animate-in fade-in duration-300"
-                style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+                style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(4px)' }}
                 onClick={() => setIsHistoryOpen(false)}
             >
                 <div 
@@ -765,7 +765,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                     </button>
                     
                     <div className="p-6 sm:p-8 flex items-center gap-4 shrink-0" style={{ borderBottom: '1.5px solid var(--border)' }}>
-                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center" style={{ background: 'rgba(37,99,235,0.1)' }}>
+                        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center" style={{ background: 'var(--blue-tint2)' }}>
                             <Maximize2 size={20} className="sm:w-6 sm:h-6" style={{ color: 'var(--blue)' }} />
                         </div>
                         <div>
