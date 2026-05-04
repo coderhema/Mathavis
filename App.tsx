@@ -186,7 +186,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex min-h-dvh w-full overflow-x-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <div className="flex h-dvh w-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm md:hidden" onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}>
@@ -244,7 +244,7 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 min-h-0 flex flex-col relative isolate overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col relative isolate overflow-y-auto">
         {/* Mobile Header */}
         <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 sm:px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
             <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>
