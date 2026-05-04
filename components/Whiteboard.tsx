@@ -84,7 +84,7 @@ const FormattedText: React.FC<{ text: string; highlightIndex?: number }> = ({ te
         const isHighlighted = sIdx === highlightIndex;
         
         return (
-          <span key={sIdx} className={isHighlighted ? "bg-brand-blue/20 dark:bg-brand-blue/40 rounded px-1 transition-colors duration-300" : ""}>
+          <span key={sIdx} className={isHighlighted ? "rounded px-1 transition-colors duration-300" : ""} style={isHighlighted ? { background: 'rgba(37,99,235,0.15)' } : undefined}>
             {parts.map((part, i) => {
               if (!part) return null;
               
@@ -100,14 +100,14 @@ const FormattedText: React.FC<{ text: string; highlightIndex?: number }> = ({ te
               
               // Bold Text
               if (part.startsWith('**') && part.endsWith('**')) {
-                return <strong key={i} className="text-brand-blue font-extrabold">{part.slice(2, -2)}</strong>;
+                return <strong key={i} className="font-extrabold" style={{ color: 'var(--blue)' }}>{part.slice(2, -2)}</strong>;
               }
               
               // Keywords
               const isKeyword = MATH_KEYWORDS.some(k => k.toLowerCase() === part.toLowerCase());
               if (isKeyword) {
                 return (
-                  <span key={i} className="px-1 py-0.5 rounded bg-brand-blue/10 dark:bg-brand-blue/20 text-brand-blue font-bold decoration-brand-blue/30 underline-offset-4 decoration-2">
+                  <span key={i} className="px-1 py-0.5 rounded font-bold underline-offset-4 decoration-2" style={{ background: 'rgba(37,99,235,0.08)', color: 'var(--blue)' }}>
                     {part}
                   </span>
                 );
@@ -419,7 +419,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
             <div 
-                className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+                className="fixed inset-0 z-50 animate-in fade-in duration-300"
+                style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
                 onClick={() => setIsHistoryOpen(false)}
             >
                 <div 
@@ -428,7 +429,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 >
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-2">
-                            <History className="text-brand-blue" size={24} />
+                            <History size={24} style={{ color: 'var(--blue)' }} />
                             <h2 className="text-xl font-extrabold" style={{ color: 'var(--text)' }}>Math Coop</h2>
                         </div>
                         <button onClick={() => { soundService.playBoop(); setIsHistoryOpen(false); }} className="p-2 transition-colors" style={{ color: 'var(--text3)' }}>
@@ -438,7 +439,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
                     <button 
                         onClick={handleNewChat}
-                        className="w-full flex items-center justify-center gap-2 py-4 mb-6 bg-brand-green text-white rounded-2xl font-bold shadow-[0_4px_0_#46A302] hover:translate-y-0.5 hover:shadow-none transition-all"
+                        className="btn-cta w-full mb-6"
                     >
                         <Plus size={20} />
                         New Module
@@ -450,12 +451,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                             <div 
                                 key={session.id}
                                 onClick={() => { soundService.playBoop(); setCurrentSessionId(session.id); setIsHistoryOpen(false); }}
-                                className={`group flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                                    session.id === currentSessionId 
-                                    ? 'border-brand-blue' 
-                                    : 'hover:border-[var(--border2)]'
-                                }`}
-                                style={{ background: 'var(--bg)', borderColor: session.id === currentSessionId ? undefined : 'var(--border)' }}
+                                className={`group flex items-center justify-between p-4 rounded-2xl border-2 transition-all cursor-pointer`}
+                                style={{ background: 'var(--bg)', borderColor: session.id === currentSessionId ? 'var(--blue)' : 'var(--border)' }}
                             >
                                 <div className="flex-1 min-w-0 pr-2">
                                     {editingSessionId === session.id ? (
@@ -472,7 +469,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                             />
                                             <button 
                                                 onClick={() => { soundService.playBoop(); renameSession(session.id, editingTitle); }}
-                                                className="p-1.5 text-brand-green hover:bg-brand-green/10 rounded-lg transition-colors"
+                                                className="p-1.5 rounded-lg transition-colors"
+                                                style={{ color: 'var(--success)' }}
                                             >
                                                 <Check size={16} />
                                             </button>
@@ -540,7 +538,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                 <div className="h-8 w-[2px] mx-1" style={{ background: 'var(--border)' }} />
                 <button 
                     onClick={handleNewChat}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-green text-white rounded-xl font-bold shadow-[0_3px_0_#46A302] hover:translate-y-0.5 hover:shadow-none transition-all text-sm"
+                    className="btn-cta"
+                    style={{ fontSize: 13, padding: '8px 16px' }}
                 >
                     <Plus size={18} />
                     New Chat
@@ -550,7 +549,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
             <div className="flex items-center gap-4">
                 <div className="hidden sm:flex items-center gap-2" style={{ color: 'var(--text3)' }}>
                     {isSaving ? (
-                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest animate-pulse text-brand-blue">
+                        <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest animate-pulse" style={{ color: 'var(--blue)' }}>
                             <Save size={12} /> Syncing...
                         </span>
                     ) : (
@@ -608,7 +607,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                     className="absolute top-4 right-4 z-20 p-2 backdrop-blur-md rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:scale-110" style={{ background: 'var(--bg-glass, var(--bg))', border: '1px solid var(--border)' }}
                                     title="Expand"
                                 >
-                                    <Maximize2 size={20} className="text-brand-blue" />
+                                    <Maximize2 size={20} style={{ color: 'var(--blue)' }} />
                                 </button>
                                 <div className="h-[350px] md:h-[500px] w-full relative">
                                     {msg.visual.type === VisualType.PLOT && msg.visual.plotData && <PlotVis data={msg.visual.plotData} />}
@@ -617,7 +616,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                             <Plot3DVis data={msg.visual.plot3DData} />
                                             {msg.visual.plotData && (
                                                 <div className="absolute top-4 right-4 w-24 h-24 md:w-32 md:h-32 z-20 rounded-2xl shadow-xl overflow-hidden pointer-events-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
-                                                    <div className="absolute top-1 left-2 text-[8px] font-bold text-slate-400 uppercase tracking-tighter z-10">2D Preview</div>
+                                                    <div className="absolute top-1 left-2 text-[8px] font-bold uppercase tracking-tighter z-10" style={{ color: "var(--text3)" }}>2D Preview</div>
                                                     <PlotVis data={msg.visual.plotData} isPreview={true} />
                                                 </div>
                                             )}
@@ -627,8 +626,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                         <>
                                             <Geometry3DVis data={msg.visual.geometry3DData} />
                                             {msg.visual.plotData && (
-                                                <div className="absolute top-4 right-4 w-24 h-24 md:w-32 md:h-32 z-20 bg-white/90 dark:bg-slate-800/90 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-xl overflow-hidden pointer-events-auto">
-                                                    <div className="absolute top-1 left-2 text-[8px] font-bold text-slate-400 uppercase tracking-tighter z-10">2D Preview</div>
+                                                <div className="absolute top-4 right-4 w-24 h-24 md:w-32 md:h-32 z-20 rounded-2xl shadow-xl overflow-hidden pointer-events-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                                                    <div className="absolute top-1 left-2 text-[8px] font-bold uppercase tracking-tighter z-10" style={{ color: 'var(--text3)' }}>2D Preview</div>
                                                     <PlotVis data={msg.visual.plotData} isPreview={true} />
                                                 </div>
                                             )}
@@ -659,7 +658,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                              </div>
                              <span className="mono-label mb-2">Thinking...</span>
                          </div>
-                        <div className="p-4 rounded-3xl rounded-tl-sm shadow-sm ml-4" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)' }}><Loader2 className="animate-spin text-brand-green" size={24} /></div>
+                        <div className="p-4 rounded-3xl rounded-tl-sm shadow-sm ml-4" style={{ background: 'var(--bg)', border: '1.5px solid var(--border)' }}><Loader2 className="animate-spin" size={24} style={{ color: 'var(--success)' }} /></div>
                     </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -672,11 +671,11 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
             
             {capturedImage && (
                 <div className="max-w-4xl mx-auto w-full min-w-0 px-4 mb-2 animate-in slide-in-from-bottom-2">
-                    <div className="p-2 rounded-2xl border-2 border-brand-blue flex items-center gap-3 shadow-lg" style={{ background: 'var(--bg)' }}>
+                    <div className="p-2 rounded-2xl flex items-center gap-3 shadow-lg" style={{ background: 'var(--bg)', border: '2px solid var(--blue)' }}>
                         <div className="w-16 h-16 rounded-xl overflow-hidden border-2 relative group flex items-center justify-center" style={{ background: 'var(--bg3)', borderColor: 'var(--border)' }}>
                             {capturedImage.startsWith('data:application/pdf') ? (
                                 <div className="flex flex-col items-center justify-center">
-                                    <Save size={24} className="text-brand-red" />
+                                    <Save size={24} style={{ color: 'var(--error)' }} />
                                     <span className="text-[8px] font-bold mt-1">PDF</span>
                                 </div>
                             ) : (
@@ -741,13 +740,13 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                     soundService.playBoop();
                                     setShowKeyboard(!showKeyboard);
                                 }} 
-                                className={`absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-xl transition-colors ${showKeyboard ? 'text-brand-blue' : ''}`} style={{ color: showKeyboard ? 'var(--blue)' : 'var(--text3)' }}
+                                className={`absolute right-1.5 md:right-2 top-1/2 -translate-y-1/2 p-1.5 md:p-2 rounded-xl transition-colors`} style={{ color: showKeyboard ? 'var(--blue)' : 'var(--text3)' }}
                             >
                                 {showKeyboard ? <X size={18} /> : <Keyboard size={18} />}
                             </button>
                         </div>
                         
-                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all ${(inputText.trim() || capturedImage) && !isLoading ? 'bg-brand-green text-white shadow-[0_4px_0_#46A302] hover:translate-y-1 hover:shadow-none' : 'cursor-not-allowed opacity-40'}`} style={(inputText.trim() || capturedImage) && !isLoading ? {} : { background: 'var(--bg3)' }}><Send size={20} /></button>
+                        <button onClick={() => handleSend(inputText, capturedImage)} disabled={(!inputText.trim() && !capturedImage) || isLoading} className={`p-3 md:p-4 rounded-2xl transition-all`} style={(inputText.trim() || capturedImage) && !isLoading ? { background: 'var(--blue)', color: '#fff', boxShadow: '0 4px 0 var(--blue2)' } : { background: 'var(--bg3)', color: 'var(--text3)', cursor: 'not-allowed', opacity: 0.4 }}><Send size={20} /></button>
                     </div>
                 </div>
             </div>
@@ -767,7 +766,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                     
                     <div className="p-6 sm:p-8 flex items-center gap-4 shrink-0" style={{ borderBottom: '1.5px solid var(--border)' }}>
                         <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center" style={{ background: 'rgba(37,99,235,0.1)' }}>
-                            <Maximize2 size={20} className="sm:w-6 sm:h-6 text-brand-blue" />
+                            <Maximize2 size={20} className="sm:w-6 sm:h-6" style={{ color: 'var(--blue)' }} />
                         </div>
                         <div>
                             <h2 className="text-xl sm:text-2xl font-extrabold" style={{ color: 'var(--text)' }}>Interactive Visualization</h2>
@@ -797,8 +796,8 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                                 {expandedArtifact.visual.plotData ? (
                                     <>
                                         <PlotVis data={expandedArtifact.visual.plotData} />
-                                        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 w-24 h-24 sm:w-40 sm:h-40 z-20 bg-white/90 dark:bg-slate-800/90 rounded-2xl sm:rounded-3xl border-2 border-slate-200 dark:border-slate-700 shadow-2xl overflow-hidden pointer-events-auto">
-                                            <div className="absolute top-1 left-2 sm:top-2 sm:left-3 text-[8px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-tighter z-10">3D View</div>
+                                        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 w-24 h-24 sm:w-40 sm:h-40 z-20 rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden pointer-events-auto" style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                                            <div className="absolute top-1 left-2 sm:top-2 sm:left-3 text-[8px] sm:text-[10px] font-bold uppercase tracking-tighter z-10" style={{ color: 'var(--text3)' }}>3D View</div>
                                             <Geometry3DVis data={expandedArtifact.visual.geometry3DData} />
                                         </div>
                                     </>
@@ -829,7 +828,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                             </div>
                             <button 
                                 onClick={() => handleRead(expandedArtifact.text)}
-                                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all font-bold text-[10px] sm:text-xs ${isReading ? 'bg-brand-red text-white shadow-lg' : 'shadow-sm hover:shadow-md'}`} style={isReading ? {} : { background: 'var(--bg)', color: 'var(--blue)', border: '1px solid var(--border)' }}
+                                className={`flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl transition-all font-bold text-[10px] sm:text-xs ${isReading ? 'shadow-lg' : 'shadow-sm hover:shadow-md'}`} style={isReading ? { background: 'var(--error)', color: '#fff' } : { background: 'var(--bg)', color: 'var(--blue)', border: '1px solid var(--border)' }}
                             >
                                 {isReading ? <VolumeX size={14} /> : <Volume2 size={14} />}
                                 {isReading ? 'Stop Reading' : 'Read Aloud'}

@@ -9,8 +9,9 @@ import Waitlist from './components/Waitlist';
 import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
+import VoxelChicken from './components/VoxelChicken';
 import { Topic, View } from './types';
-import { Menu, X, Sun, Moon, History, Plus, Map, BookOpen, Book, Trophy, ShoppingBag } from 'lucide-react';
+import { Menu, X, Sun, Moon, Plus, Map, BookOpen, Book, Trophy, ShoppingBag } from 'lucide-react';
 import { soundService } from './services/soundService';
 
 const DEFAULT_TOPICS: Topic[] = [
@@ -186,51 +187,108 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans transition-colors duration-300">
+    <div className="flex h-dvh w-full overflow-hidden dark-transition" style={{ background: 'var(--bg2)', color: 'var(--text)' }}>
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm md:hidden" onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}>
-            <div className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-80 bg-white dark:bg-slate-900 p-4 sm:p-6 border-r dark:border-slate-800 overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-2xl font-extrabold text-brand-green">MathLingo</h1>
-                    <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }} className="dark:text-slate-400">
-                        <X size={24} />
-                    </button>
-                </div>
-                <nav className="space-y-2">
-                     {NAV_ITEMS.map(({ view, label, icon: Icon }) => (
-                         <button 
-                            key={view}
-                            onClick={() => handleNavChange(view)}
-                            className={"flex items-center gap-4 w-full p-3 rounded-2xl transition-all border-2 uppercase text-sm font-extrabold tracking-widest " + (
-                              currentView === view
-                                ? "bg-blue-50 dark:bg-brand-blue/10 text-brand-blue border-brand-blue shadow-sm"
-                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border-transparent hover:border-slate-200 dark:hover:border-slate-700"
-                            )}
-                        >
-                            <Icon size={24} />
-                            <span>{label}</span>
-                        </button>
-                     ))}
-                     <button 
-                        onClick={() => { soundService.playBoop(); handleOpenHistory(); setIsMobileMenuOpen(false); }}
-                        className="flex items-center gap-4 w-full p-3 rounded-2xl transition-all border-2 uppercase text-sm font-extrabold tracking-widest text-brand-blue border-transparent hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-200 dark:hover:border-slate-700"
-                    >
-                        <History size={20} />
-                        <span>Session History</span>
-                    </button>
-                </nav>
-
-                <div className="absolute bottom-6 left-6 right-6">
-                  <button 
-                    onClick={toggleDarkMode}
-                    className="w-full flex items-center justify-center gap-3 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold"
-                  >
-                    {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                    <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-                  </button>
-                </div>
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}
+          onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}
+        >
+          <div
+            className="absolute left-0 top-0 bottom-0 w-[90vw] max-w-[260px] overflow-y-auto flex flex-col dark-transition"
+            style={{
+              background: 'var(--bg)',
+              borderRight: '1px solid var(--border)',
+              padding: '20px 16px',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Logo row */}
+            <div className="flex items-center justify-between mb-8 px-1">
+              <div className="flex items-center gap-2">
+                <VoxelChicken size={30} />
+                <span style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 18,
+                  fontWeight: 700,
+                  color: 'var(--accent)',
+                  letterSpacing: '-0.02em',
+                }}>
+                  Mathavis
+                </span>
+              </div>
+              <button
+                onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(false); }}
+                style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+              >
+                <X size={22} />
+              </button>
             </div>
+
+            {/* Nav */}
+            <nav className="flex-1 space-y-1 min-w-0">
+              {NAV_ITEMS.map(({ view, label, icon: Icon }) => {
+                const isActive = currentView === view;
+                return (
+                  <button
+                    key={view}
+                    onClick={() => handleNavChange(view)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      width: '100%',
+                      padding: '10px 14px',
+                      borderRadius: 12,
+                      border: isActive ? '1.5px solid var(--blue)' : '1.5px solid transparent',
+                      background: isActive ? 'rgba(37,99,235,0.07)' : 'transparent',
+                      color: isActive ? 'var(--blue)' : 'var(--text2)',
+                      fontFamily: "'Space Grotesk', sans-serif",
+                      fontSize: 13,
+                      fontWeight: isActive ? 700 : 600,
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    } as React.CSSProperties}
+                    onMouseEnter={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg3)'; }}
+                    onMouseLeave={e => { if (!isActive) (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; }}
+                  >
+                    <Icon size={20} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Theme toggle */}
+            <div className="mt-auto pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+              <button
+                onClick={toggleDarkMode}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  width: '100%',
+                  padding: '10px 14px',
+                  borderRadius: 12,
+                  background: 'var(--bg3)',
+                  border: '1px solid var(--border)',
+                  color: 'var(--text2)',
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -246,18 +304,28 @@ const App: React.FC = () => {
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 min-h-0 flex flex-col relative isolate overflow-y-auto">
         {/* Mobile Header */}
-        <div className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 sm:px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors">
-            <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>
-                <Menu className="text-slate-500 dark:text-slate-400" />
+        <div
+          className="md:hidden sticky top-0 z-[80] flex items-center justify-between px-4 sm:px-6 py-4 dark-transition"
+          style={{ background: 'var(--bg)', borderBottom: '1px solid var(--border)' }}
+        >
+          <button onClick={() => { soundService.playBoop(); setIsMobileMenuOpen(true); }}>
+            <Menu size={22} style={{ color: 'var(--text2)' }} />
+          </button>
+          <span style={{
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 10,
+            fontWeight: 700,
+            letterSpacing: '0.13em',
+            textTransform: 'uppercase',
+            color: 'var(--text3)',
+          }}>
+            {getViewLabel(currentView, selectedTopic)}
+          </span>
+          <div className="flex items-center gap-4">
+            <button onClick={toggleDarkMode} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <span className="font-extrabold text-slate-400 dark:text-slate-500 uppercase tracking-widest text-sm">
-                {getViewLabel(currentView, selectedTopic)}
-            </span>
-            <div className="flex items-center gap-4">
-              <button onClick={toggleDarkMode} className="text-slate-500 dark:text-slate-400">
-                {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
-            </div>
+          </div>
         </div>
 
         {currentView === 'path' && (
@@ -288,48 +356,59 @@ const App: React.FC = () => {
 
       {/* Shared Topic Prompt Modal */}
       {isTopicPromptOpen && (
-          <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-              <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[32px] border-4 border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 animate-in zoom-in-95 duration-300">
-                  <div className="flex items-center gap-4 mb-6">
-                      <div className="w-12 h-12 bg-brand-green/10 rounded-2xl flex items-center justify-center">
-                          <Plus size={24} className="text-brand-green" />
-                      </div>
-                      <div>
-                          <h2 className="text-2xl font-extrabold text-slate-700 dark:text-slate-200">New Module</h2>
-                          <p className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest text-[10px]">What are we learning today?</p>
-                      </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                      <div className="relative">
-                          <input 
-                              autoFocus
-                              type="text" 
-                              value={newTopicName}
-                              onChange={(e) => setNewTopicName(e.target.value)}
-                              onKeyDown={(e) => e.key === 'Enter' && confirmNewTopic(newTopicName)}
-                              placeholder="e.g. Linear Algebra, Calculus..."
-                              className="w-full p-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 outline-none focus:border-brand-blue transition-all font-bold text-slate-700 dark:text-slate-200"
-                          />
-                      </div>
-                      
-                      <div className="flex gap-3">
-                          <button 
-                              onClick={() => setIsTopicPromptOpen(false)}
-                              className="flex-1 py-4 rounded-2xl font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                          >
-                              Cancel
-                          </button>
-                          <button 
-                              onClick={() => confirmNewTopic(newTopicName)}
-                              className="flex-1 py-4 bg-brand-green text-white rounded-2xl font-bold shadow-[0_4px_0_#46A302] hover:translate-y-0.5 hover:shadow-none transition-all"
-                          >
-                              Start Learning
-                          </button>
-                      </div>
-                  </div>
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }}
+        >
+          <div className="ds-card w-full max-w-md p-6 sm:p-8 animate-in zoom-in-95 duration-300">
+            <div className="flex items-center gap-4 mb-6">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                style={{ background: 'rgba(37,99,235,0.1)' }}
+              >
+                <Plus size={24} style={{ color: 'var(--blue)' }} />
               </div>
+              <div>
+                <h2 style={{
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: 'var(--text)',
+                }}>New Module</h2>
+                <p className="mono-label">What are we learning today?</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newTopicName}
+                  onChange={(e) => setNewTopicName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && confirmNewTopic(newTopicName)}
+                  placeholder="e.g. Linear Algebra, Calculus..."
+                  className="ds-input"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsTopicPromptOpen(false)}
+                  className="btn-ghost flex-1"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => confirmNewTopic(newTopicName)}
+                  className="btn-cta flex-1"
+                >
+                  Start Learning
+                </button>
+              </div>
+            </div>
           </div>
+        </div>
       )}
       <Analytics />
     </div>
