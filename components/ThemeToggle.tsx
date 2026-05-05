@@ -54,21 +54,17 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       });
     }).ready;
 
-    const clipPath = [
-      `circle(0px at ${x}px ${y}px)`,
-      `circle(${endRadius}px at ${x}px ${y}px)`,
-    ];
-
     document.documentElement.animate(
       {
-        clipPath: nextDark ? clipPath : [...clipPath].reverse(),
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
+        ],
       },
       {
         duration: 500,
         easing: 'ease-in-out',
-        pseudoElement: nextDark 
-          ? '::view-transition-new(root)' 
-          : '::view-transition-old(root)',
+        pseudoElement: '::view-transition-new(root)',
       }
     );
   };
