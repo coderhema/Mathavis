@@ -19,7 +19,7 @@ const MODES: PracticeMode[] = [
     title: 'Guided Learning',
     description: 'Step-by-step walkthroughs with Prof. Cluck.',
     icon: BookOpen,
-    color: 'bg-brand-blue',
+    color: 'var(--blue)',
     xpBonus: '+10 XP',
     difficulty: 'Easy'
   },
@@ -28,7 +28,7 @@ const MODES: PracticeMode[] = [
     title: 'Speed Quiz',
     description: 'Test your knowledge against the clock.',
     icon: Zap,
-    color: 'bg-brand-yellow',
+    color: 'var(--accent)',
     xpBonus: '+25 XP',
     difficulty: 'Medium'
   },
@@ -37,7 +37,7 @@ const MODES: PracticeMode[] = [
     title: 'Daily Challenge',
     description: 'Tackle the hardest problems of the day.',
     icon: Target,
-    color: 'bg-brand-red',
+    color: 'var(--error)',
     xpBonus: '+50 XP',
     difficulty: 'Hard'
   },
@@ -46,7 +46,7 @@ const MODES: PracticeMode[] = [
     title: 'Free Exploration',
     description: 'Ask anything and visualize complex concepts.',
     icon: Brain,
-    color: 'bg-brand-purple',
+    color: 'var(--blue)',
     xpBonus: '+15 XP',
     difficulty: 'Easy'
   },
@@ -55,7 +55,7 @@ const MODES: PracticeMode[] = [
     title: 'Mental Math',
     description: 'Sharpen your speed with rapid-fire calculations.',
     icon: Calculator,
-    color: 'bg-brand-green',
+    color: 'var(--success)',
     xpBonus: '+20 XP',
     difficulty: 'Medium'
   },
@@ -64,7 +64,7 @@ const MODES: PracticeMode[] = [
     title: 'Visual Proofs',
     description: 'Understand theorems through geometric intuition.',
     icon: Shapes,
-    color: 'bg-brand-red',
+    color: 'var(--error)',
     xpBonus: '+30 XP',
     difficulty: 'Hard'
   }
@@ -76,89 +76,89 @@ interface PracticeMenuProps {
 
 const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-slate-50 dark:bg-slate-950 p-4 md:p-8 transition-colors duration-300 relative">
-      {/* Technical Grid Background */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'radial-gradient(#3b82f6 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-      
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-2 h-2 rounded-full bg-brand-blue animate-pulse" />
-              <span className="text-brand-blue font-black uppercase tracking-[0.3em] text-[10px]">System Status: Active</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-800 dark:text-white mb-1">Practice Lab</h2>
-            <p className="text-slate-500 dark:text-slate-400 font-bold">Select a training protocol to begin</p>
+    <div className="flex-1 min-h-0 overflow-y-auto relative scrollbar-hide dark-transition" style={{ background: 'var(--bg2)' }}>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+        {/* Header */}
+        <div className="mb-8 sm:mb-12">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: 'var(--blue)' }} />
+            <span className="mono-label">Practice Lab</span>
           </div>
-          
-          <div className="flex flex-wrap gap-3 md:gap-4">
-            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
-              <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Global Rank</span>
-              <span className="text-lg font-black text-brand-yellow">#1,204</span>
-            </div>
-            <div className="min-w-[140px] flex-1 bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl shadow-sm">
-              <span className="block text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Accuracy</span>
-              <span className="text-lg font-black text-brand-green">94%</span>
-            </div>
+          <h2 className="text-2xl sm:text-3xl font-extrabold mb-1" style={{ color: 'var(--text)' }}>
+            Select a Training Protocol
+          </h2>
+          <p className="mono-hint text-sm">Choose your learning mode and begin</p>
+        </div>
+
+        {/* Stats Row */}
+        <div className="flex flex-wrap gap-3 mb-8">
+          <div
+            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl border dark-transition"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+          >
+            <span className="mono-label block mb-1" style={{ fontSize: 9 }}>Global Rank</span>
+            <span className="text-lg font-extrabold" style={{ color: 'var(--accent)' }}>#1,204</span>
+          </div>
+          <div
+            className="flex-1 min-w-[140px] px-4 py-3 rounded-2xl border dark-transition"
+            style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+          >
+            <span className="mono-label block mb-1" style={{ fontSize: 9 }}>Accuracy</span>
+            <span className="text-lg font-extrabold" style={{ color: 'var(--success)' }}>94%</span>
           </div>
         </div>
 
-        {/* Bento Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:auto-rows-[200px]">
+        {/* Mode Cards Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {MODES.map((mode, idx) => {
-            // Different spans for bento effect
-            const isLarge = idx === 0;
-            const isWide = idx === 2;
-            
+            const isFeatured = idx === 0;
             return (
               <motion.button
                 key={mode.id}
-                whileHover={{ scale: 1.01, translateY: -2 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ scale: 1.02, translateY: -2 }}
+                whileTap={{ scale: 0.98 }}
                 onClick={() => {
                   soundService.playBoop();
                   onSelectMode(mode.id);
                 }}
                 className={`
-                  group relative rounded-[24px] p-6 text-left border-2 border-slate-200 dark:border-slate-800 
-                  bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-xl transition-all overflow-hidden
-                  hover:border-brand-blue/50 hover:bg-slate-100 dark:hover:bg-slate-800/50
-                  ${isLarge ? 'md:row-span-2 md:col-span-1' : ''}
-                  ${isWide ? 'md:col-span-2' : ''}
+                  group relative rounded-2xl p-5 sm:p-6 text-left border-2 dark-transition
+                  overflow-hidden transition-all
                 `}
+                style={{
+                  background: 'var(--bg)',
+                  borderColor: 'var(--border)',
+                  ...(isFeatured ? { gridColumn: '1 / -1', smGridColumn: 'span 1' } : {}),
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--blue)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--border)';
+                }}
               >
-                {/* Scanning Line Effect */}
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-brand-blue/5 to-transparent h-20 -translate-y-full pointer-events-none" />
-                
-                <div className="flex flex-col h-full justify-between relative z-10">
-                  <div className="flex items-start justify-between">
-                    <div className={`p-3 ${mode.color} rounded-xl shadow-lg text-white`}>
-                      <mode.icon size={isLarge ? 40 : 24} strokeWidth={2.5} />
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1">{mode.difficulty}</div>
-                      <div className="text-xs font-black text-brand-green">{mode.xpBonus}</div>
-                    </div>
+                <div className="flex items-start gap-4">
+                  <div
+                    className="p-3 rounded-xl shrink-0"
+                    style={{ background: mode.color, color: '#fff' }}
+                  >
+                    <mode.icon size={isFeatured ? 32 : 24} strokeWidth={2.5} />
                   </div>
-
-                  <div>
-                    <h3 className={`${isLarge ? 'text-3xl' : 'text-xl'} font-black text-slate-800 dark:text-white mb-2 group-hover:text-brand-blue transition-colors`}>
-                      {mode.title}
-                    </h3>
-                    <p className={`text-slate-500 dark:text-slate-400 font-bold leading-relaxed ${isLarge ? 'text-base' : 'text-xs'}`}>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-lg font-extrabold group-hover:text-blue-500 transition-colors" style={{ color: 'var(--text)' }}>
+                        {mode.title}
+                      </h3>
+                      <span className="mono-label" style={{ fontSize: 9 }}>{mode.difficulty}</span>
+                    </div>
+                    <p className="text-sm font-medium leading-relaxed" style={{ color: 'var(--text2)' }}>
                       {mode.description}
                     </p>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex gap-1">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className={`w-1 h-1 rounded-full ${i <= (idx % 3 + 1) ? 'bg-brand-blue' : 'bg-slate-300 dark:bg-slate-700'}`} />
-                      ))}
-                    </div>
-                    <div className="text-[10px] font-black text-brand-blue uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                      Initialize <ArrowRight size={10} />
+                    <div className="flex items-center justify-between mt-4">
+                      <span className="text-xs font-bold" style={{ color: 'var(--success)' }}>{mode.xpBonus}</span>
+                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1" style={{ color: 'var(--blue)' }}>
+                        Start <ArrowRight size={10} />
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -167,33 +167,29 @@ const PracticeMenu: React.FC<PracticeMenuProps> = ({ onSelectMode }) => {
           })}
         </div>
 
-        {/* Status Footer */}
-        <div className="mt-8 p-5 sm:p-6 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-[32px] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6 overflow-hidden relative shadow-lg">
-          <div className="absolute top-0 left-0 w-1 h-full bg-brand-yellow" />
+        {/* Progress Footer */}
+        <div
+          className="mt-8 p-5 sm:p-6 rounded-2xl border-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative overflow-hidden dark-transition"
+          style={{ background: 'var(--bg)', borderColor: 'var(--border)' }}
+        >
+          <div className="absolute left-0 top-0 bottom-0 w-1" style={{ background: 'var(--accent)' }} />
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-12 h-12 bg-brand-yellow/10 rounded-xl flex items-center justify-center text-brand-yellow">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ background: 'var(--blue-tint2)', color: 'var(--accent)' }}>
               <Trophy size={24} />
             </div>
             <div>
-              <h4 className="text-lg font-black text-slate-800 dark:text-white">Weekly Protocol Progress</h4>
-              <p className="text-slate-500 dark:text-slate-400 font-bold text-sm">Target: 5 sessions remaining for rank promotion</p>
+              <h4 className="text-base font-extrabold" style={{ color: 'var(--text)' }}>Weekly Protocol Progress</h4>
+              <p className="text-sm" style={{ color: 'var(--text2)' }}>Target: 5 sessions remaining for rank promotion</p>
             </div>
           </div>
           <div className="flex items-center gap-4 w-full md:w-auto relative z-10">
-            <div className="flex-1 md:w-48 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-              <div className="h-full bg-brand-yellow w-[60%] rounded-full" />
+            <div className="flex-1 md:w-48 h-2 rounded-full overflow-hidden" style={{ background: 'var(--bg3)' }}>
+              <div className="h-full rounded-full" style={{ width: '60%', background: 'var(--accent)' }} />
             </div>
-            <span className="text-brand-yellow font-black text-sm">60%</span>
+            <span className="text-sm font-extrabold" style={{ color: 'var(--accent)' }}>60%</span>
           </div>
         </div>
       </div>
-      
-      <style>{`
-        @keyframes scan {
-          from { transform: translateY(-100%); }
-          to { transform: translateY(400%); }
-        }
-      `}</style>
     </div>
   );
 };
