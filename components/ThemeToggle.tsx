@@ -62,7 +62,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         ],
       },
       {
-        duration: 500,
+        duration: 800,
         easing: 'ease-in-out',
         pseudoElement: '::view-transition-new(root)',
       }
