@@ -32,7 +32,7 @@ class SoundService {
     }
   }
 
-  playBoop() { this.play('boop'); }
+  playBoop() { /* disabled */ }
   playCluck() { this.play('cluck'); }
   playSuccess() { this.play('success'); }
   playError() { this.play('error'); }

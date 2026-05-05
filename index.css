@@ -1,5 +1,4 @@
-/* ─── Mathavis Design System ─────────────────────────────────────────────── */
-
+/* ─── Mathavis Design System ─────────────────────────────────────────── */
 /* Light mode tokens */
 :root {
   --bg:        #ffffff;
@@ -91,7 +90,26 @@
   --shadow:    0 4px 32px rgba(0, 0, 0, 0.4);
 }
 
-/* ─── Global base ─────────────────────────────────────────────────────────── */
+/* ─── View Transitions for Theme Toggle ────────────────────────────────── */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+.dark::view-transition-old(root) {
+  z-index: 2;
+}
+.dark::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* ─── Global base ─────────────────────────────────────────────────────── */
 html {
   scroll-behavior: smooth;
 }
@@ -106,7 +124,7 @@ body {
   color: var(--text);
 }
 
-/* ─── Scrollbar hide ──────────────────────────────────────────────────────── */
+/* ─── Scrollbar hide ───────────────────────────────────────────────────── */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -180,7 +198,7 @@ body {
   box-shadow: 0 1px 0 var(--border2);
 }
 
-/* ─── Pill chip ───────────────────────────────────────────────────────────── */
+/* ─── Pill chip ───────────────────────────────────────────────────────── */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -208,7 +226,7 @@ body {
   font-weight: 600;
 }
 
-/* ─── Design-system input ────────────────────────────────────────────────── */
+/* ─── Design-system input ────────────────────────────────────────────── */
 .ds-input {
   width: 100%;
   background: var(--bg2);
@@ -233,7 +251,7 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
 }
 
-/* ─── Mono label / tag ────────────────────────────────────────────────────── */
+/* ─── Mono label / tag ────────────────────────────────────────────────── */
 .mono-label {
   font-family: 'Space Mono', monospace;
   font-size: 10px;
@@ -249,7 +267,7 @@ body {
   color: var(--text3);
 }
 
-/* ─── Card / surface ─────────────────────────────────────────────────────── */
+/* ─── Card / surface ─────────────────────────────────────────────────── */
 .ds-card {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -257,7 +275,7 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* ─── Progress dot ────────────────────────────────────────────────────────── */
+/* ─── Progress dot ───────────────────────────────────────────────────── */
 .prog-dot {
   width: 8px;
   height: 8px;
@@ -273,7 +291,7 @@ body {
   background: var(--dotdone);
 }
 
-/* ─── Floating math symbols ───────────────────────────────────────────────── */
+/* ─── Floating math symbols ───────────────────────────────────────────── */
 .math-float {
   font-family: 'Space Mono', monospace;
   font-size: 13px;
@@ -284,7 +302,7 @@ body {
   line-height: 1;
 }
 
-/* ─── Step transition ─────────────────────────────────────────────────────── */
+/* ─── Step transition ─────────────────────────────────────────────────── */
 @keyframes stepIn {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -348,7 +366,7 @@ body {
   50%       { transform: scaleY(1.5) translateY(1px); }
 }
 
-/* ─── Confetti burst ──────────────────────────────────────────────────────── */
+/* ─── Confetti burst ──────────────────────────────────────────────────── */
 @keyframes cpFly {
   0%   { transform: translate(-50%,-50%) scale(1); opacity: 1; }
   100% { transform: translate(var(--tx), var(--ty)) scale(0.3) rotate(var(--rot)); opacity: 0; }
@@ -361,7 +379,7 @@ body {
   animation: cpFly 0.9s cubic-bezier(.36,.07,.19,.97) forwards;
 }
 
-/* ─── Chicken entrance slide-in ───────────────────────────────────────────── */
+/* ─── Chicken entrance slide-in ─────────────────────────────────────────── */
 .chicken-wrap {
   transform: translateX(-140px);
   opacity: 0;
@@ -372,7 +390,7 @@ body {
   opacity: 1;
 }
 
-/* ─── Theme toggle ────────────────────────────────────────────────────────── */
+/* ─── Theme toggle ────────────────────────────────────────────────────── */
 .theme-toggle {
   display: flex;
   align-items: center;
@@ -391,10 +409,6 @@ body {
   background: var(--bg3);
 }
 
-/* ─── Dark mode transition ────────────────────────────────────────────────── */
-.dark-transition {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
-}
 
-/* ─── KaTeX dark mode ─────────────────────────────────────────────────────── */
+/* ─── KaTeX dark mode ─────────────────────────────────────────────────── */
 .dark .katex { color: inherit; }

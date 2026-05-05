@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Eraser, Loader2, User, ArrowRight, Keyboard, X, Camera, Plus, Save, History, Trash2, Clock, Edit2, Check, Volume2, VolumeX, Maximize2 } from 'lucide-react';
 import { Message, VisualType, ChatSession } from '../types';
-import { sendMessageToGemini } from '../services/geminiService';
+import { sendMessageToAI } from '../services/aiService';
 import { soundService } from '../services/soundService';
 import { ttsService } from '../services/ttsService';
 import PlotVis from './visualizations/PlotVis';
@@ -190,6 +190,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
   const [isHistoryOpen, setIsHistoryOpen] = useState(initialHistoryOpen || false);
   const [isReading, setIsReading] = useState(false);
   const [readingSentenceIndex, setReadingSentenceIndex] = useState(-1);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   const stopReading = () => {
     ttsService.stop();
@@ -283,7 +284,7 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
     setIsLoading(true);
 
     try {
-        const responseMsg = await sendMessageToGemini(messages, userMsg.text, image || undefined); 
+        const responseMsg = await sendMessageToAI(messages, userMsg.text, image || undefined); 
         
         soundService.playCluck();
 
@@ -381,19 +382,22 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
   const handleClearCurrentHistory = () => {
     soundService.playBoop();
-    if (window.confirm("Clear this conversation?")) {
-        setSessions(prev => prev.map(s => {
-            if (s.id === currentSessionId) {
-                return {
-                    ...s,
-                    title: 'New Math Session',
-                    messages: [getInitialMessage(initialTopic)],
-                    updatedAt: Date.now()
-                };
-            }
-            return s;
-        }));
-    }
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearSession = () => {
+    setShowClearConfirm(false);
+    setSessions(prev => prev.map(s => {
+        if (s.id === currentSessionId) {
+            return {
+                ...s,
+                title: 'New Math Session',
+                messages: [getInitialMessage(initialTopic)],
+                updatedAt: Date.now()
+            };
+        }
+        return s;
+    }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -418,13 +422,14 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
     <div className="flex min-h-0 flex-col h-full w-full min-w-0 relative isolate overflow-x-hidden dark-transition" style={{ background: 'var(--bg2)' }}>
         {/* History Drawer Overlay */}
         {isHistoryOpen && (
-            <div 
+            <div
                 className="fixed inset-0 z-50 animate-in fade-in duration-300"
                 style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(4px)' }}
                 onClick={() => setIsHistoryOpen(false)}
             >
-                <div 
-                    className="absolute left-0 top-0 bottom-0 w-[calc(100vw-1rem)] max-w-80 sm:w-80 shadow-2xl p-4 sm:p-6 flex flex-col overflow-y-auto overflow-x-hidden animate-in slide-in-from-left duration-300" style={{ background: 'var(--bg)', borderRight: '1.5px solid var(--border)' }}
+                <div
+                    className="absolute left-0 w-[calc(100vw-1rem)] max-w-80 sm:w-80 shadow-2xl p-4 sm:p-6 flex flex-col overflow-y-auto overflow-x-hidden animate-in slide-in-from-left duration-300 md:left-[240px] top-[56px] md:top-0 bottom-0"
+                    style={{ background: 'var(--bg)', borderRight: '1.5px solid var(--border)' }}
                     onClick={e => e.stopPropagation()}
                 >
                     <div className="flex items-center justify-between mb-8">
@@ -837,6 +842,49 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
                         <div className="text-sm sm:text-base font-medium leading-relaxed max-h-40 overflow-y-auto scrollbar-hide" style={{ color: 'var(--text2)' }}>
                             <FormattedText text={expandedArtifact.text} highlightIndex={readingSentenceIndex} />
                         </div>
+                    </div>
+                </div>
+            </div>
+        )}
+
+        {/* Clear Session Confirmation Modal */}
+        {showClearConfirm && (
+            <div
+                className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200"
+                style={{ background: 'var(--overlay-bg)', backdropFilter: 'blur(12px)' }}
+                onClick={() => setShowClearConfirm(false)}
+            >
+                <div
+                    className="ds-card w-full max-w-sm p-6 sm:p-8 animate-in zoom-in-95 duration-200"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="flex items-center gap-4 mb-6">
+                        <div
+                            className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0"
+                            style={{ background: 'rgba(239,68,68,0.12)' }}
+                        >
+                            <Eraser size={24} style={{ color: 'var(--error)' }} />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-extrabold" style={{ color: 'var(--text)' }}>Clear Conversation?</h2>
+                            <p className="text-sm" style={{ color: 'var(--text2)' }}>This will remove all messages in the current session.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowClearConfirm(false)}
+                            className="btn-ghost flex-1"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={confirmClearSession}
+                            className="btn-cta flex-1"
+                            style={{ background: 'var(--error)', boxShadow: '0 5px 0 rgba(185,28,28,0.4)' }}
+                        >
+                            Clear
+                        </button>
                     </div>
                 </div>
             </div>

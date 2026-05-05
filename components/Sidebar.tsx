@@ -3,6 +3,7 @@ import { Map, BookOpen, Star, Zap, Heart, Trophy, ShoppingBag, Sun, Moon, Book }
 import { View } from '../types';
 import VoxelChicken from './VoxelChicken';
 import { soundService } from '../services/soundService';
+import { ThemeToggle } from './ThemeToggle';
 
 interface UserStats {
     xp: number;
@@ -15,7 +16,7 @@ interface SidebarProps {
   setView: (view: View) => void;
   stats?: UserStats;
   isDarkMode?: boolean;
-  toggleDarkMode?: () => void;
+  toggleDarkMode?: (nextDark: boolean) => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMode, toggleDarkMode }) => {
@@ -53,10 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
     );
   };
 
-  const handleToggleTheme = () => {
-    soundService.playBoop();
-    if (toggleDarkMode) toggleDarkMode();
-  };
 
   return (
     <div
@@ -84,11 +81,13 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setView, stats, isDarkMo
             Mathavis
           </span>
         </div>
-        {toggleDarkMode && (
-          <button onClick={handleToggleTheme} className="theme-toggle" style={{ width: 30, height: 30 }}>
-            {isDarkMode ? <Sun size={14} /> : <Moon size={14} />}
-          </button>
-        )}
+        <ThemeToggle 
+          className="theme-toggle" 
+          style={{ width: 30, height: 30 }} 
+          iconSize={14} 
+          isDarkMode={isDarkMode || false}
+          onToggle={toggleDarkMode || (() => {})} 
+        />
       </div>
 
       {/* Nav */}

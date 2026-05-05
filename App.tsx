@@ -13,6 +13,7 @@ import VoxelChicken from './components/VoxelChicken';
 import { Topic, View } from './types';
 import { Menu, X, Sun, Moon, Plus, Map, BookOpen, Book, Trophy, ShoppingBag } from 'lucide-react';
 import { soundService } from './services/soundService';
+import { ThemeToggle } from './components/ThemeToggle';
 
 const DEFAULT_TOPICS: Topic[] = [
     { id: 'algebra', name: 'Linear Algebra', description: 'Vectors, Matrices, Spaces', color: 'bg-brand-blue', icon: 'grid', completed: 60 },
@@ -163,9 +164,8 @@ const App: React.FC = () => {
       setUserStats(prev => ({ ...prev, xp: prev.xp + amount }));
   };
 
-  const toggleDarkMode = () => {
-    soundService.playBoop();
-    setIsDarkMode(prev => !prev);
+  const toggleDarkMode = (nextDark?: boolean) => {
+    setIsDarkMode(prev => nextDark !== undefined ? nextDark : !prev);
   };
 
   if (pathname === '/waitlist') {
@@ -264,8 +264,10 @@ const App: React.FC = () => {
 
             {/* Theme toggle */}
             <div className="mt-auto pt-4" style={{ borderTop: '1px solid var(--border)' }}>
-              <button
-                onClick={toggleDarkMode}
+              <ThemeToggle
+                onToggle={(dark) => setIsDarkMode(dark)}
+                isDarkMode={isDarkMode}
+                showText={true}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -283,10 +285,7 @@ const App: React.FC = () => {
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                 }}
-              >
-                {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-                <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
-              </button>
+              />
             </div>
           </div>
         </div>
@@ -321,11 +320,14 @@ const App: React.FC = () => {
           }}>
             {getViewLabel(currentView, selectedTopic)}
           </span>
-          <div className="flex items-center gap-4">
-            <button onClick={toggleDarkMode} style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer' }}>
-              {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            </button>
-          </div>
+            <div className="flex items-center gap-4">
+              <ThemeToggle
+                onToggle={(dark) => setIsDarkMode(dark)}
+                isDarkMode={isDarkMode}
+                iconSize={18}
+                style={{ color: 'var(--text2)', background: 'none', border: 'none', cursor: 'pointer' }}
+              />
+            </div>
         </div>
 
         {currentView === 'path' && (

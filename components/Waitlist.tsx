@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircle2, Loader2, Mail, ShieldCheck, Sparkles, Users, Sun, Moon } from 'lucide-react';
 import VoxelChicken from './VoxelChicken';
 import { soundService } from '../services/soundService';
+import { ThemeToggle } from './ThemeToggle';
 
 type Role = 'Parent' | 'Student' | 'Organization';
 type AgeGroup = 'Under 13' | '13-17' | '18-24' | '25-34' | '35-44' | '45+';
@@ -72,14 +73,6 @@ const Waitlist: React.FC = () => {
     return () => clearTimeout(t);
   }, []);
 
-  /* Dark mode sync */
-  const toggleDark = () => {
-    soundService.playBoop();
-    const next = !isDark;
-    setIsDark(next);
-    document.documentElement.classList.toggle('dark', next);
-    localStorage.setItem('mathlingo_dark_mode', String(next));
-  };
 
   const resetStatus = () => {
     if (status.type !== 'idle') setStatus({ type: 'idle', message: '' });
@@ -189,13 +182,12 @@ const Waitlist: React.FC = () => {
       ))}
 
       {/* Dark mode toggle — top right */}
-      <button
-        onClick={toggleDark}
-        className="theme-toggle absolute top-5 right-5 z-20"
-        aria-label="Toggle dark mode"
-      >
-        {isDark ? <Sun size={16} /> : <Moon size={16} />}
-      </button>
+      <ThemeToggle 
+        className="theme-toggle absolute top-5 right-5 z-20" 
+        iconSize={16} 
+        isDarkMode={isDark}
+        onToggle={(dark) => setIsDark(dark)}
+      />
 
       {/* ── Main card ──────────────────────────────────────────────── */}
       <div

@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import VoxelChicken from './VoxelChicken';
 import { Sun, Moon } from 'lucide-react';
 import { soundService } from '../services/soundService';
+import { ThemeToggle } from './ThemeToggle';
 
 interface AuthPageProps {
   onLogin: () => void;
   isDarkMode?: boolean;
-  toggleDarkMode?: () => void;
+  toggleDarkMode?: (nextDark: boolean) => void;
 }
 
 interface FloatSymbol { top: string; sym: string; left?: string; right?: string; }
@@ -33,11 +34,6 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
     onLogin();
   };
 
-  const handleToggleTheme = () => {
-    soundService.playBoop();
-    if (toggleDarkMode) toggleDarkMode();
-  };
-
   return (
     <div
       className="relative min-h-dvh flex flex-col items-center justify-center p-6 text-center dark-transition overflow-hidden"
@@ -56,11 +52,12 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
 
       {/* Theme toggle */}
       <div className="absolute top-5 right-5">
-        {toggleDarkMode && (
-          <button onClick={handleToggleTheme} className="theme-toggle">
-            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
-          </button>
-        )}
+        <ThemeToggle 
+          className="theme-toggle" 
+          iconSize={16} 
+          isDarkMode={isDarkMode || false}
+          onToggle={toggleDarkMode || (() => {})} 
+        />
       </div>
 
       {/* Mascot */}
