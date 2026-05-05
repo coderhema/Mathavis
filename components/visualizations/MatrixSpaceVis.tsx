@@ -41,8 +41,8 @@ const MatrixSpaceVis: React.FC<MatrixSpaceVisProps> = ({ data }) => {
   const center = 200;
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-white dark:bg-slate-900 rounded-3xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-colors">
-      <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-4 uppercase tracking-widest">{data.label || 'Space Transformation'}</h3>
+    <div className="w-full h-full flex flex-col items-center justify-center p-4 rounded-3xl shadow-sm transition-colors" style={{ background: 'var(--bg)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
+      <h3 className="text-sm font-bold mb-4 uppercase tracking-widest" style={{ color: 'var(--text3)' }}>{data.label || 'Space Transformation'}</h3>
       <svg viewBox="0 0 400 400" className="w-full h-full max-w-[350px] max-h-[350px]">
         {/* Original Grid (Subtle) */}
         <g opacity={0.1}>
@@ -99,11 +99,11 @@ const MatrixSpaceVis: React.FC<MatrixSpaceVisProps> = ({ data }) => {
       <div className="mt-4 flex gap-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#FF4B4B] rounded-full"></div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">î (Basis X)</span>
+          <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text3)' }}>î (Basis X)</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 bg-[#4BFF4B] rounded-full"></div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase">ĵ (Basis Y)</span>
+          <span className="text-[10px] font-bold uppercase" style={{ color: 'var(--text3)' }}>ĵ (Basis Y)</span>
         </div>
       </div>
     </div>

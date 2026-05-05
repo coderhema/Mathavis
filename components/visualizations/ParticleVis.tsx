@@ -26,14 +26,14 @@ const ParticleVis: React.FC<ParticleVisProps> = ({ data }) => {
   const nodeById = new Map(particles.map(p => [p.id, p]));
 
   return (
-    <div className="w-full h-full rounded-2xl bg-slate-950 overflow-hidden relative border border-slate-800">
-      <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">
+    <div className="w-full h-full rounded-2xl overflow-hidden relative" style={{ background: 'var(--bg-overlay)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
+      <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest" style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }}>
         Particle
       </div>
-      <div className="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700 text-[10px] font-bold uppercase tracking-widest text-slate-300">
+      <div className="absolute top-3 right-3 z-10 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest" style={{ background: 'var(--overlay-bg)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text2)' }}>
         {data.title}
       </div>
-      {data.subtitle && <div className="absolute bottom-3 left-3 z-10 max-w-[70%] text-[11px] text-slate-300 bg-slate-900/80 px-2 py-1 rounded-lg border border-slate-700">{data.subtitle}</div>}
+      {data.subtitle && <div className="absolute bottom-3 left-3 z-10 max-w-[70%] text-[11px] px-2 py-1 rounded-lg" style={{ color: 'var(--text2)', background: 'var(--overlay-bg)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>{data.subtitle}</div>}
 
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet">
         <defs>

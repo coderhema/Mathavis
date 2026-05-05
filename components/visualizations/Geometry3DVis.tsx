@@ -19,12 +19,31 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
   const [sliceOffset, setSliceOffset] = useState(0.5);
   const [autoRotate, setAutoRotate] = useState(false);
 
+  const getThemeColors = () => {
+    const isDark = document.documentElement.classList.contains('dark');
+    return {
+      bg: isDark ? '#0d0e14' : '#ffffff',
+      bg2: isDark ? '#181922' : '#f8f7f4',
+      bg3: isDark ? '#1e2133' : '#f0ede6',
+      border: isDark ? '#2a2d3e' : '#e2e8f0',
+      border2: isDark ? '#3d4057' : '#d1d5db',
+      text: isDark ? '#f0ede6' : '#0f172a',
+      text2: isDark ? '#9ca3af' : '#475569',
+      text3: isDark ? '#4b5563' : '#94a3b8',
+      blue: isDark ? '#3b82f6' : '#2563eb',
+      gridPrimary: isDark ? 0x3d4057 : 0x94a3b8,
+      gridSecondary: isDark ? 0x2a2d3e : 0xcbd5e1,
+    };
+  };
+
   useEffect(() => {
     if (!containerRef.current) return;
 
+    const colors = getThemeColors();
+
     // Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0f172a); // dark slate 900
+    scene.background = new THREE.Color(colors.bg2);
     sceneRef.current = scene;
 
     // Camera setup
@@ -54,8 +73,13 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
     scene.add(pointLight);
 
     // Grid
-    const grid = new THREE.GridHelper(10, 10, 0x334155, 0x1e293b);
-    scene.add(grid);
+    const gridHelper = new THREE.GridHelper(20, 20, colors.gridPrimary, colors.gridSecondary);
+    gridHelper.position.y = -0.01;
+    scene.add(gridHelper);
+
+    // Axes Helper
+    const axesHelper = new THREE.AxesHelper(12);
+    scene.add(axesHelper);
 
     // Geometry
     updateGeometry(data);
@@ -108,6 +132,7 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
     };
 
     const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
       if (!cameraRef.current) return;
       const zoomSpeed = 0.001;
       const distance = cameraRef.current.position.length();
@@ -161,11 +186,12 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
       isDragging = false;
     };
 
+    const canvas = renderer.domElement;
     const container = containerRef.current;
     container.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-    container.addEventListener('wheel', handleWheel);
+    canvas.addEventListener('wheel', handleWheel, { passive: false });
     container.addEventListener('touchstart', handleTouchStart, { passive: false });
     container.addEventListener('touchmove', handleTouchMove, { passive: false });
     container.addEventListener('touchend', handleTouchEnd);
@@ -183,7 +209,7 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
       container.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
-      container.removeEventListener('wheel', handleWheel);
+      canvas.removeEventListener('wheel', handleWheel);
       container.removeEventListener('touchstart', handleTouchStart);
       container.removeEventListener('touchmove', handleTouchMove);
       container.removeEventListener('touchend', handleTouchEnd);
@@ -194,6 +220,39 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
       }
     };
   }, [autoRotate]);
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (sceneRef.current) {
+        const colors = getThemeColors();
+        sceneRef.current.background = new THREE.Color(colors.bg2);
+        // Update grid colors
+        const toRemove: THREE.Object3D[] = [];
+        sceneRef.current.children.forEach(child => {
+          if (child instanceof THREE.GridHelper) {
+            toRemove.push(child);
+          }
+        });
+        toRemove.forEach(child => {
+          sceneRef.current!.remove(child);
+          child.traverse(obj => {
+            if (obj instanceof THREE.LineSegments && obj.material) {
+              if (Array.isArray(obj.material)) {
+                obj.material.forEach(m => m.dispose());
+              } else {
+                obj.material.dispose();
+              }
+            }
+          });
+        });
+        const newGrid = new THREE.GridHelper(20, 20, colors.gridPrimary, colors.gridSecondary);
+        newGrid.position.y = -0.01;
+        sceneRef.current.add(newGrid);
+      }
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     updateGeometry(data);
@@ -281,26 +340,36 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
       
       {/* Controls Overlay */}
       <div className="absolute top-4 left-4 right-4 flex flex-col md:flex-row justify-between items-start gap-3 pointer-events-none">
-        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700 p-2 rounded-xl flex flex-row md:flex-col gap-2 pointer-events-auto">
-           <button 
+        <div className="backdrop-blur-md p-2 rounded-xl flex flex-row md:flex-col gap-2 pointer-events-auto dark-transition"
+             style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+           <button
             onClick={resetCamera}
-            className="p-2 hover:bg-slate-800 rounded-lg text-slate-300 transition-colors flex items-center gap-2"
+            className="p-2 rounded-lg transition-colors flex items-center gap-2"
+            style={{ color: 'var(--text2)' }}
+            onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg2)'}
+            onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'transparent'}
             title="Reset View"
           >
             <RotateCcw size={18} />
             <span className="md:hidden text-[10px] font-bold uppercase">Reset</span>
           </button>
-          <button 
+          <button
             onClick={() => setAutoRotate(!autoRotate)}
-            className={`p-2 rounded-lg transition-colors flex items-center gap-2 ${autoRotate ? 'bg-brand-blue text-white' : 'hover:bg-slate-800 text-slate-300'}`}
+            className="p-2 rounded-lg transition-colors flex items-center gap-2"
+            style={autoRotate ? { background: 'var(--blue)', color: '#fff' } : { color: 'var(--text2)' }}
+            onMouseEnter={e => { if (!autoRotate) (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg2)' }}
+            onMouseLeave={e => { if (!autoRotate) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
             title={autoRotate ? "Stop Auto-Rotate" : "Start Auto-Rotate"}
           >
             <RefreshCw size={18} className={autoRotate ? 'animate-spin-slow' : ''} />
             <span className="md:hidden text-[10px] font-bold uppercase">Rotate</span>
           </button>
-          <button 
+          <button
             onClick={() => setIsSlicing(!isSlicing)}
-            className={`p-2 rounded-lg transition-colors flex items-center gap-2 ${isSlicing ? 'bg-brand-blue text-white' : 'hover:bg-slate-800 text-slate-300'}`}
+            className="p-2 rounded-lg transition-colors flex items-center gap-2"
+            style={isSlicing ? { background: 'var(--blue)', color: '#fff' } : { color: 'var(--text2)' }}
+            onMouseEnter={e => { if (!isSlicing) (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg2)' }}
+            onMouseLeave={e => { if (!isSlicing) (e.currentTarget as HTMLButtonElement).style.background = 'transparent' }}
             title="Slice Object"
           >
             <Scissors size={18} />
@@ -309,34 +378,38 @@ const Geometry3DVis: React.FC<Geometry3DVisProps> = ({ data }) => {
         </div>
 
         {isSlicing && (
-          <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700 p-3 rounded-xl flex flex-col gap-2 animate-in slide-in-from-top md:slide-in-from-left-2 pointer-events-auto w-full md:w-auto">
-            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Slice Offset</span>
-            <input 
-              type="range" 
-              min="-1" 
-              max="1" 
-              step="0.01" 
-              value={sliceOffset} 
+          <div className="p-3 rounded-xl flex flex-col gap-2 animate-in slide-in-from-top md:slide-in-from-left-2 pointer-events-auto w-full md:w-auto dark-transition"
+               style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
+            <span className="mono-label">Slice Offset</span>
+            <input
+              type="range"
+              min="-1"
+              max="1"
+              step="0.01"
+              value={sliceOffset}
               onChange={(e) => setSliceOffset(parseFloat(e.target.value))}
-              className="w-full md:w-32 accent-brand-blue"
+              className="w-full md:w-32"
+              style={{ accentColor: 'var(--blue)' }}
             />
           </div>
         )}
       </div>
 
       {/* Info Overlay */}
-      <div className="absolute bottom-4 left-4 bg-slate-900/80 backdrop-blur-md border border-slate-700 px-4 py-2 rounded-xl">
+      <div className="absolute bottom-4 left-4 px-4 py-2 rounded-xl dark-transition"
+           style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}>
         <div className="flex items-center gap-2">
-          {data.shape === 'sphere' && <Circle size={14} className="text-brand-blue" />}
-          {data.shape === 'box' && <Box size={14} className="text-brand-blue" />}
-          {data.shape === 'cone' && <Pyramid size={14} className="text-brand-blue" />}
-          {data.shape === 'torus' && <Disc size={14} className="text-brand-blue" />}
-          <span className="text-xs font-bold text-slate-200 capitalize">{data.label}</span>
+          {data.shape === 'sphere' && <Circle size={14} style={{ color: 'var(--blue)' }} />}
+          {data.shape === 'box' && <Box size={14} style={{ color: 'var(--blue)' }} />}
+          {data.shape === 'cone' && <Pyramid size={14} style={{ color: 'var(--blue)' }} />}
+          {data.shape === 'torus' && <Disc size={14} style={{ color: 'var(--blue)' }} />}
+          <span className="text-xs font-bold capitalize" style={{ color: 'var(--text)' }}>{data.label}</span>
         </div>
       </div>
 
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="bg-slate-900/80 backdrop-blur-md border border-slate-700 px-3 py-1.5 rounded-lg text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+        <div className="px-3 py-1.5 rounded-lg mono-label dark-transition"
+             style={{ background: 'var(--bg)', border: '1px solid var(--border)', color: 'var(--text3)' }}>
           Drag to Rotate • Scroll to Zoom
         </div>
       </div>

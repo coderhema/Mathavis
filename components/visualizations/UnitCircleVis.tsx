@@ -19,8 +19,8 @@ const UnitCircleVis: React.FC<UnitCircleVisProps> = ({ data }) => {
   const cy = center - y * radius;
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-4">
-      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+    <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl p-4" style={{ background: 'var(--bg2)' }}>
+      <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text3)' }}>
         Unit Circle: θ = {data.angle}°
       </div>
       
@@ -65,13 +65,13 @@ const UnitCircleVis: React.FC<UnitCircleVisProps> = ({ data }) => {
       </svg>
 
       <div className="mt-6 grid grid-cols-2 gap-4 w-full max-w-xs">
-        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 flex flex-col items-center">
-          <span className="text-[10px] font-black text-slate-400 uppercase">Cosine</span>
-          <span className="text-lg font-black text-brand-red">{x.toFixed(3)}</span>
+        <div className="p-3 rounded-xl flex flex-col items-center" style={{ background: 'var(--bg)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
+          <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text3)' }}>Cosine</span>
+          <span className="text-lg font-black" style={{ color: 'var(--error)' }}>{x.toFixed(3)}</span>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 flex flex-col items-center">
-          <span className="text-[10px] font-black text-slate-400 uppercase">Sine</span>
-          <span className="text-lg font-black text-brand-green">{y.toFixed(3)}</span>
+        <div className="p-3 rounded-xl flex flex-col items-center" style={{ background: 'var(--bg)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
+          <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text3)' }}>Sine</span>
+          <span className="text-lg font-black" style={{ color: 'var(--success)' }}>{y.toFixed(3)}</span>
         </div>
       </div>
     </div>

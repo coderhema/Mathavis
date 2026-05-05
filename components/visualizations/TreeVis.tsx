@@ -73,15 +73,15 @@ const TreeVis: React.FC<TreeVisProps> = ({ data }) => {
   const rootNode = data.nodes.find(node => node.id === data.rootId) || data.nodes.find(node => !node.parentId) || data.nodes[0];
 
   return (
-    <div ref={containerRef} className="w-full h-full rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden relative">
-      <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 shadow-sm">
+    <div ref={containerRef} className="w-full h-full rounded-2xl overflow-hidden relative" style={{ background: 'var(--bg)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
+      <div className="absolute top-3 left-3 z-10 px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-sm" style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }}>
         Tree
       </div>
-      <div className="absolute top-3 right-3 z-10 text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-white/80 dark:bg-slate-800/80 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+      <div className="absolute top-3 right-3 z-10 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.8)', color: 'var(--text3)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
         {data.title}
       </div>
       {data.subtitle && (
-        <div className="absolute top-12 left-3 z-10 max-w-[75%] text-[11px] text-slate-500 dark:text-slate-400 bg-white/80 dark:bg-slate-800/80 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="absolute top-12 left-3 z-10 max-w-[75%] text-[11px] px-2 py-1 rounded-lg" style={{ color: 'var(--text3)', background: 'rgba(255,255,255,0.8)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
           {data.subtitle}
         </div>
       )}
@@ -110,14 +110,14 @@ const TreeVis: React.FC<TreeVisProps> = ({ data }) => {
 
       {layout.nodes.map(node => {
         const isRoot = rootNode?.id === node.id;
-        const bg = node.group === 2 ? 'bg-brand-green' : node.group === 3 ? 'bg-brand-purple' : isRoot ? 'bg-brand-blue' : 'bg-slate-700';
+        const bgStyle = node.group === 2 ? { background: 'var(--success)' } : node.group === 3 ? { background: 'var(--purple)' } : isRoot ? { background: 'var(--blue)' } : { background: 'var(--bg3)' };
         return (
           <div
             key={node.id}
             className="absolute -translate-x-1/2 -translate-y-1/2"
             style={{ left: node.x, top: node.y }}
           >
-            <div className={`min-w-[130px] max-w-[180px] rounded-2xl px-4 py-3 text-white shadow-xl ${bg}`}>
+            <div className="min-w-[130px] max-w-[180px] rounded-2xl px-4 py-3 text-white shadow-xl" style={bgStyle}>
               <div className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">{node.parentId ? 'Node' : 'Root'}</div>
               <div className="font-black text-sm leading-snug">{node.label}</div>
               {node.note && <div className="mt-1 text-[11px] text-white/80 leading-snug">{node.note}</div>}

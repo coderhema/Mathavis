@@ -18,8 +18,8 @@ const ComplexPlaneVis: React.FC<ComplexPlaneVisProps> = ({ data }) => {
   const angleDeg = (angleRad * 180) / Math.PI;
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-4">
-      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+    <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl p-4" style={{ background: 'var(--bg2)' }}>
+      <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text3)' }}>
         Complex Plane: z = {data.real} + {data.imaginary}i
       </div>
       
@@ -40,8 +40,8 @@ const ComplexPlaneVis: React.FC<ComplexPlaneVisProps> = ({ data }) => {
         <line x1={center} y1={0} x2={center} y2={size} stroke="#cbd5e1" strokeWidth="2" />
         
         {/* Real/Imaginary Labels */}
-        <text x={size - 10} y={center - 5} textAnchor="end" className="text-[10px] font-bold fill-slate-400">Re</text>
-        <text x={center + 5} y={15} textAnchor="start" className="text-[10px] font-bold fill-slate-400">Im</text>
+        <text x={size - 10} y={center - 5} textAnchor="end" className="text-[10px] font-bold" style={{ fill: 'var(--text3)' }}>Re</text>
+        <text x={center + 5} y={15} textAnchor="start" className="text-[10px] font-bold" style={{ fill: 'var(--text3)' }}>Im</text>
 
         {/* Vector */}
         <line x1={center} y1={center} x2={cx} y2={cy} stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" />
@@ -61,13 +61,13 @@ const ComplexPlaneVis: React.FC<ComplexPlaneVisProps> = ({ data }) => {
       </svg>
 
       <div className="mt-6 grid grid-cols-2 gap-4 w-full max-w-xs">
-        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 flex flex-col items-center">
-          <span className="text-[10px] font-black text-slate-400 uppercase">Magnitude |z|</span>
-          <span className="text-lg font-black text-brand-blue">{magnitude.toFixed(3)}</span>
+        <div className="p-3 rounded-xl flex flex-col items-center" style={{ background: 'var(--bg)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
+          <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text3)' }}>Magnitude |z|</span>
+          <span className="text-lg font-black" style={{ color: 'var(--blue)' }}>{magnitude.toFixed(3)}</span>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border-2 border-slate-100 dark:border-slate-800 flex flex-col items-center">
-          <span className="text-[10px] font-black text-slate-400 uppercase">Argument θ</span>
-          <span className="text-lg font-black text-brand-yellow">{angleDeg.toFixed(1)}°</span>
+        <div className="p-3 rounded-xl flex flex-col items-center" style={{ background: 'var(--bg)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
+          <span className="text-[10px] font-black uppercase" style={{ color: 'var(--text3)' }}>Argument θ</span>
+          <span className="text-lg font-black" style={{ color: 'var(--warning)' }}>{angleDeg.toFixed(1)}°</span>
         </div>
       </div>
     </div>

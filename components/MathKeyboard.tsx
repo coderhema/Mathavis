@@ -36,7 +36,8 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInsert, onDelete, onEnter
   if (!isOpen) return null;
 
   return (
-    <div className="bg-slate-200 dark:bg-slate-950 p-2 md:p-4 pb-8 border-t-2 border-slate-300 dark:border-slate-800 animate-in slide-in-from-bottom duration-300 transition-colors">
+    <div className="p-2 md:p-4 pb-8 animate-in slide-in-from-bottom duration-300 dark-transition"
+         style={{ background: 'var(--bg3)', borderTop: '1.5px solid var(--border)' }}>
       <div className="max-w-4xl mx-auto grid grid-cols-[1fr_auto] gap-2">
         <div className="grid grid-cols-5 gap-1 md:gap-2">
           {keys.map((row, i) => (
@@ -45,7 +46,14 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInsert, onDelete, onEnter
                 <button
                   key={key}
                   onClick={() => handleInsert(key)}
-                  className="h-10 md:h-12 rounded-lg bg-white dark:bg-slate-800 shadow-[0_2px_0_#cbd5e1] dark:shadow-[0_2px_0_#1e293b] active:translate-y-1 active:shadow-none hover:bg-slate-50 dark:hover:bg-slate-700 font-bold text-slate-600 dark:text-slate-200 text-sm md:text-lg flex items-center justify-center transition-all"
+                  className="h-10 md:h-12 rounded-lg active:translate-y-1 active:shadow-none font-bold text-sm md:text-lg flex items-center justify-center transition-all"
+                  style={{
+                    background: 'var(--bg)',
+                    color: 'var(--text)',
+                    boxShadow: '0 2px 0 var(--border2)',
+                  }}
+                  onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg2)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg)'}
                 >
                   {key}
                 </button>
@@ -54,15 +62,28 @@ const MathKeyboard: React.FC<MathKeyboardProps> = ({ onInsert, onDelete, onEnter
           ))}
         </div>
         <div className="flex flex-col gap-2 w-16 md:w-20">
-            <button 
+            <button
                 onClick={handleDelete}
-                className="flex-1 rounded-lg bg-slate-300 dark:bg-slate-800 shadow-[0_2px_0_#94a3b8] dark:shadow-[0_2px_0_#1e293b] active:translate-y-1 active:shadow-none hover:bg-slate-400 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-all"
+                className="flex-1 rounded-lg active:translate-y-1 active:shadow-none flex items-center justify-center transition-all"
+                style={{
+                  background: 'var(--bg2)',
+                  color: 'var(--text2)',
+                  boxShadow: '0 2px 0 var(--border2)',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg3)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--bg2)'}
             >
                 <Delete size={20} />
             </button>
-            <button 
+            <button
                 onClick={handleEnter}
-                className="h-24 md:h-32 rounded-lg bg-brand-green shadow-[0_2px_0_#46A302] active:translate-y-1 active:shadow-none hover:bg-brand-greenDark text-white flex items-center justify-center transition-all"
+                className="h-24 md:h-32 rounded-lg active:translate-y-1 active:shadow-none flex items-center justify-center transition-all text-white"
+                style={{
+                  background: 'var(--success)',
+                  boxShadow: '0 2px 0 rgba(16, 185, 129, 0.5)',
+                }}
+                onMouseEnter={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--blue)'}
+                onMouseLeave={e => (e.currentTarget as HTMLButtonElement).style.background = 'var(--success)'}
             >
                 <Check size={28} />
             </button>

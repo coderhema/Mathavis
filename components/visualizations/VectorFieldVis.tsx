@@ -95,8 +95,8 @@ const VectorFieldVis: React.FC<VectorFieldVisProps> = ({ data }) => {
   }, [data]);
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-4">
-      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+    <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl p-4" style={{ background: 'var(--bg2)' }}>
+      <div className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text3)' }}>
         Vector Field: F(x,y) = ({data.formulaX}, {data.formulaY})
       </div>
       <canvas 

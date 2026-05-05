@@ -162,31 +162,32 @@ const FlowchartVis: React.FC<FlowchartVisProps> = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-full min-h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-slate-200 dark:border-slate-800 overflow-hidden transition-colors relative group">
+    <div className="w-full h-full min-h-[400px] rounded-2xl overflow-hidden transition-colors relative group" style={{ background: 'var(--bg2)', borderWidth: 2, borderColor: 'var(--border)', borderStyle: 'solid' }}>
         <div className="absolute top-3 left-3 flex items-center gap-2 z-10">
-          <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="backdrop-blur px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-sm" style={{ background: 'rgba(255,255,255,0.8)', color: 'var(--text3)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
             Process Flow
           </div>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
               onClick={() => setIsPaused(!isPaused)}
-              className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm"
+              className="p-1.5 rounded-lg border transition-colors shadow-sm hover:text-brand-blue"
+              style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }}
               title={isPaused ? "Resume Simulation" : "Pause Simulation"}
             >
               {isPaused ? <Play size={14} fill="currentColor" /> : <Pause size={14} fill="currentColor" />}
             </button>
-            <button onClick={() => handleZoom(1.5)} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Zoom In">
+            <button onClick={() => handleZoom(1.5)} className="p-1.5 rounded-lg border transition-colors shadow-sm hover:text-brand-blue" style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }} title="Zoom In">
                <ZoomIn size={14} />
             </button>
-            <button onClick={() => handleZoom(0.6)} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Zoom Out">
+            <button onClick={() => handleZoom(0.6)} className="p-1.5 rounded-lg border transition-colors shadow-sm hover:text-brand-blue" style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }} title="Zoom Out">
                <ZoomOut size={14} />
             </button>
-            <button onClick={handleResetZoom} className="p-1.5 bg-white/90 dark:bg-slate-800/90 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-brand-blue transition-colors shadow-sm" title="Reset View">
+            <button onClick={handleResetZoom} className="p-1.5 rounded-lg border transition-colors shadow-sm hover:text-brand-blue" style={{ background: 'rgba(255,255,255,0.9)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid', color: 'var(--text3)' }} title="Reset View">
                <Maximize size={14} />
             </button>
           </div>
         </div>
-        <div className="absolute bottom-3 left-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur px-2 py-1 rounded-lg text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 pointer-events-none">
+        <div className="absolute bottom-3 left-3 backdrop-blur px-2 py-1 rounded-lg text-[9px] font-bold pointer-events-none" style={{ background: 'rgba(255,255,255,0.6)', color: 'var(--text3)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
           Pinch or Scroll to Zoom • Drag to Pan
         </div>
         <svg ref={svgRef} className="w-full h-full cursor-all-scroll" />

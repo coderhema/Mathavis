@@ -44,16 +44,16 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
   const selectedOptionData = data.options.find(o => o.id === selectedOption);
 
   return (
-    <div className="w-full max-w-2xl mx-auto p-6 bg-white rounded-2xl shadow-sm border border-slate-100">
+    <div className="w-full max-w-2xl mx-auto p-6 rounded-2xl shadow-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-indigo-50 rounded-lg">
-          <HelpCircle className="w-5 h-5 text-indigo-600" />
+        <div className="p-2 rounded-lg" style={{ background: 'var(--bg3)' }}>
+          <HelpCircle className="w-5 h-5" style={{ color: 'var(--blue)' }} />
         </div>
-        <h3 className="text-lg font-semibold text-slate-800">Practice Question</h3>
+        <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Practice Question</h3>
       </div>
 
       <div className="mb-8">
-        <p className="text-xl text-slate-700 leading-relaxed font-medium">
+        <p className="text-xl leading-relaxed font-medium" style={{ color: 'var(--text)' }}>
           {data.question}
         </p>
       </div>
@@ -63,25 +63,30 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
           const isSelected = selectedOption === option.id;
           const isCorrect = option.isCorrect;
           
-          let bgColor = 'bg-slate-50 border-slate-200 hover:border-indigo-300';
-          let textColor = 'text-slate-700';
+          let bgColor = 'hover:border-indigo-300';
+          let textColor = '';
           let icon = null;
+          let bgStyle = { background: 'var(--bg2)', borderColor: 'var(--border)', borderWidth: 2, borderStyle: 'solid', color: 'var(--text)' };
 
           if (isSubmitted) {
             if (isCorrect) {
-              bgColor = 'bg-emerald-50 border-emerald-500 ring-1 ring-emerald-500';
-              textColor = 'text-emerald-700';
-              icon = <Check className="w-5 h-5 text-emerald-600" />;
+              bgColor = 'ring-1 ring-emerald-500';
+              textColor = '';
+              icon = <Check className="w-5 h-5" style={{ color: 'var(--success)' }} />;
+              bgStyle = { background: 'var(--bg2)', borderColor: 'var(--success)', borderWidth: 2, borderStyle: 'solid', color: 'var(--success)' };
             } else if (isSelected && !isCorrect) {
-              bgColor = 'bg-rose-50 border-rose-500 ring-1 ring-rose-500';
-              textColor = 'text-rose-700';
-              icon = <X className="w-5 h-5 text-rose-600" />;
+              bgColor = 'ring-1 ring-rose-500';
+              textColor = '';
+              icon = <X className="w-5 h-5" style={{ color: 'var(--error)' }} />;
+              bgStyle = { background: 'var(--bg2)', borderColor: 'var(--error)', borderWidth: 2, borderStyle: 'solid', color: 'var(--error)' };
             } else {
-              bgColor = 'bg-slate-50 border-slate-200 opacity-50';
+              bgColor = 'opacity-50';
+              bgStyle = { background: 'var(--bg2)', borderColor: 'var(--border)', borderWidth: 2, borderStyle: 'solid', color: 'var(--text3)' };
             }
           } else if (isSelected) {
-            bgColor = 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500';
-            textColor = 'text-indigo-700';
+            bgColor = 'ring-1 ring-indigo-500';
+            textColor = '';
+            bgStyle = { background: 'var(--bg3)', borderColor: 'var(--blue)', borderWidth: 2, borderStyle: 'solid', color: 'var(--blue)' };
           }
 
           return (
@@ -92,6 +97,7 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
               onClick={() => handleOptionSelect(option.id)}
               disabled={isSubmitted}
               className={`w-full flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 text-left ${bgColor} ${textColor}`}
+              style={bgStyle}
             >
               <span className="font-medium">{option.text}</span>
               {icon}
@@ -111,9 +117,10 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
             disabled={!selectedOption}
             className={`w-full py-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all ${
               selectedOption 
-                ? 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200' 
-                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                ? 'text-white shadow-lg' 
+                : 'cursor-not-allowed'
             }`}
+            style={selectedOption ? { background: 'var(--blue)', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' } : { background: 'var(--bg3)', color: 'var(--text3)' }}
           >
             Submit Answer
             <ArrowRight className="w-5 h-5" />
@@ -125,7 +132,7 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
             animate={{ opacity: 1, height: 'auto' }}
             className="space-y-6"
           >
-            <div className={`p-4 rounded-xl ${selectedOptionData?.isCorrect ? 'bg-emerald-50 text-emerald-800' : 'bg-rose-50 text-rose-800'}`}>
+            <div className="p-4 rounded-xl" style={selectedOptionData?.isCorrect ? { background: 'var(--bg2)', color: 'var(--success)' } : { background: 'var(--bg2)', color: 'var(--error)' }}>
               <p className="font-semibold mb-2">
                 {selectedOptionData?.isCorrect ? 'Correct!' : 'Not quite right.'}
               </p>
@@ -136,7 +143,8 @@ export const QuizVis: React.FC<QuizVisProps> = ({ data, onComplete }) => {
             
             <button
               onClick={handleReset}
-              className="flex items-center gap-2 text-indigo-600 font-medium hover:text-indigo-700 transition-colors mx-auto"
+              className="flex items-center gap-2 font-medium transition-colors mx-auto"
+              style={{ color: 'var(--blue)' }}
             >
               <RotateCcw className="w-4 h-4" />
               Try Another Question

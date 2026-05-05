@@ -33,8 +33,8 @@ const VennDiagramVis: React.FC<VennDiagramVisProps> = ({ data }) => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 rounded-2xl p-4">
-      <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+    <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl p-4" style={{ background: 'var(--bg2)' }}>
+      <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text3)' }}>
         Venn Diagram: {data.sets.map(s => s.label).join(' ∩ ')}
       </div>
       
@@ -55,7 +55,7 @@ const VennDiagramVis: React.FC<VennDiagramVisProps> = ({ data }) => {
                 x={props.cx} 
                 y={props.cy - props.r - 10} 
                 textAnchor="middle" 
-                className="text-xs font-bold fill-slate-500 dark:fill-slate-400"
+                className="text-xs font-bold" style={{ fill: 'var(--text3)' }}
               >
                 {set.label}
               </text>
@@ -72,7 +72,7 @@ const VennDiagramVis: React.FC<VennDiagramVisProps> = ({ data }) => {
                 x={center} 
                 y={center} 
                 textAnchor="middle" 
-                className="text-[10px] font-black fill-slate-700 dark:fill-slate-200"
+                className="text-[10px] font-black" style={{ fill: 'var(--text)' }}
               >
                 {inter.size}
               </text>
@@ -84,9 +84,9 @@ const VennDiagramVis: React.FC<VennDiagramVisProps> = ({ data }) => {
 
       <div className="mt-6 flex flex-wrap justify-center gap-3">
         {data.sets.map((set, i) => (
-          <div key={i} className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-full shadow-sm" style={{ background: 'var(--bg)', borderColor: 'var(--border)', borderWidth: 1, borderStyle: 'solid' }}>
             <div className="w-3 h-3 rounded-full" style={{ backgroundColor: borderColors[i % borderColors.length] }} />
-            <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300">{set.label}: {set.size}</span>
+            <span className="text-[10px] font-bold" style={{ color: 'var(--text2)' }}>{set.label}: {set.size}</span>
           </div>
         ))}
       </div>

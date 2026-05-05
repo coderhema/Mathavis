@@ -29,188 +29,195 @@ const Plot3DVis: React.FC<Plot3DVisProps> = ({ data, isStatic = false }) => {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Setup
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
-
-    const scene = new THREE.Scene();
-    const isDark = document.documentElement.classList.contains('dark');
-    scene.background = new THREE.Color(isDark ? 0x0f172a : 0xf8fafc);
-    sceneRef.current = scene;
-
-    const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(8, 8, 8);
-    cameraRef.current = camera;
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
-    containerRef.current.appendChild(renderer.domElement);
-    rendererRef.current = renderer;
-
-    const labelRenderer = new CSS2DRenderer();
-    labelRenderer.setSize(width, height);
-    labelRenderer.domElement.style.position = 'absolute';
-    labelRenderer.domElement.style.top = '0px';
-    labelRenderer.domElement.style.pointerEvents = 'none';
-    containerRef.current.appendChild(labelRenderer.domElement);
-    labelRendererRef.current = labelRenderer;
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    if (isStatic) {
-      controls.enabled = false;
-    }
-    controlsRef.current = controls;
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-    scene.add(ambientLight);
-
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(10, 10, 10);
-    scene.add(directionalLight);
-
-    // Grid Helper
-    const gridHelper = new THREE.GridHelper(20, 20, 0x94a3b8, 0xcbd5e1);
-    gridHelper.position.y = -0.01;
-    scene.add(gridHelper);
-
-    // Axes Helper
-    const axesHelper = new THREE.AxesHelper(12);
-    scene.add(axesHelper);
-
-    // Add HTML Labels for Axes
-    const createLabel = (text: string, x: number, y: number, z: number) => {
-      const div = document.createElement('div');
-      div.className = 'text-[10px] font-bold text-slate-500 bg-white/80 dark:bg-slate-800/80 px-1 rounded border border-slate-200 dark:border-slate-700';
-      
-      // Render KaTeX if available
-      if (window.katex) {
-        try {
-          window.katex.render(text, div, { throwOnError: false });
-        } catch (e) {
-          div.textContent = text;
-        }
-      } else {
-        div.textContent = text;
-      }
-
-      const label = new CSS2DObject(div);
-      label.position.set(x, y, z);
-      return label;
-    };
-
-    scene.add(createLabel('x', 13, 0, 0));
-    scene.add(createLabel('y', 0, 13, 0));
-    scene.add(createLabel('z', 0, 0, 13));
-
+    let animationId: number;
     let geometry: THREE.PlaneGeometry | null = null;
     let material: THREE.MeshPhongMaterial | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
-    // Surface Generation
-    try {
-      const { formula, xRange, yRange } = data;
-      const node = math.parse(formula);
-      const code = node.compile();
+    const setup = () => {
+      const container = containerRef.current;
+      if (!container || container.clientWidth === 0 || container.clientHeight === 0) {
+        requestAnimationFrame(setup);
+        return;
+      }
 
-      const segments = 40;
-      const xMin = xRange[0];
-      const xMax = xRange[1];
-      const yMin = yRange[0];
-      const yMax = yRange[1];
-      const surfaceWidth = xMax - xMin;
-      const surfaceHeight = yMax - yMin;
-      const safeWidth = surfaceWidth || 1;
-      const safeHeight = surfaceHeight || 1;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
 
-      geometry = new THREE.PlaneGeometry(surfaceWidth, surfaceHeight, segments, segments);
-      const vertices = geometry.attributes.position.array as Float32Array;
+      const scene = new THREE.Scene();
+      const isDark = document.documentElement.classList.contains('dark');
+      scene.background = new THREE.Color(isDark ? 0x0f172a : 0xf8fafc);
+      sceneRef.current = scene;
 
-      for (let i = 0; i < vertices.length; i += 3) {
-        const localX = vertices[i];
-        const localY = vertices[i + 1];
+      const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+      camera.position.set(8, 8, 8);
+      cameraRef.current = camera;
 
-        const x = xMin + ((localX + safeWidth / 2) / safeWidth) * (xMax - xMin);
-        const y = yMin + ((localY + safeHeight / 2) / safeHeight) * (yMax - yMin);
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.domElement.style.position = 'absolute';
+      renderer.domElement.style.top = '0';
+      renderer.domElement.style.left = '0';
+      container.style.position = 'relative';
+      container.style.overflow = 'hidden';
+      container.appendChild(renderer.domElement);
+      rendererRef.current = renderer;
 
-        const scope = { x, y, Math };
-        try {
-          const z = code.evaluate(scope);
-          vertices[i + 2] = Number.isFinite(z) ? z : 0;
-        } catch (e) {
-          vertices[i + 2] = 0;
+      const labelRenderer = new CSS2DRenderer();
+      labelRenderer.setSize(width, height);
+      labelRenderer.domElement.style.position = 'absolute';
+      labelRenderer.domElement.style.top = '0';
+      labelRenderer.domElement.style.left = '0';
+      labelRenderer.domElement.style.pointerEvents = 'none';
+      container.appendChild(labelRenderer.domElement);
+      labelRendererRef.current = labelRenderer;
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      if (isStatic) {
+        controls.enabled = false;
+      }
+      controlsRef.current = controls;
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+      scene.add(ambientLight);
+
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(10, 10, 10);
+      scene.add(directionalLight);
+
+      const gridHelper = new THREE.GridHelper(20, 20, 0x94a3b8, 0xcbd5e1);
+      gridHelper.position.y = -0.01;
+      scene.add(gridHelper);
+
+      const axesHelper = new THREE.AxesHelper(12);
+      scene.add(axesHelper);
+
+      const createLabel = (text: string, x: number, y: number, z: number) => {
+        const div = document.createElement('div');
+        div.className = 'text-[10px] font-bold text-slate-500 bg-white/80 dark:bg-slate-800/80 px-1 rounded border border-slate-200 dark:border-slate-700';
+        if (window.katex) {
+          try {
+            window.katex.render(text, div, { throwOnError: false });
+          } catch (e) {
+            div.textContent = text;
+          }
+        } else {
+          div.textContent = text;
         }
+        const label = new CSS2DObject(div);
+        label.position.set(x, y, z);
+        return label;
+      };
+
+      scene.add(createLabel('x', 13, 0, 0));
+      scene.add(createLabel('y', 0, 13, 0));
+      scene.add(createLabel('z', 0, 0, 13));
+
+      try {
+        const { formula, xRange, yRange } = data;
+        const node = math.parse(formula);
+        const code = node.compile();
+
+        const segments = 40;
+        const xMin = xRange[0];
+        const xMax = xRange[1];
+        const yMin = yRange[0];
+        const yMax = yRange[1];
+        const surfaceWidth = xMax - xMin;
+        const surfaceHeight = yMax - yMin;
+        const safeWidth = surfaceWidth || 1;
+        const safeHeight = surfaceHeight || 1;
+
+        geometry = new THREE.PlaneGeometry(surfaceWidth, surfaceHeight, segments, segments);
+        const vertices = geometry.attributes.position.array as Float32Array;
+
+        for (let i = 0; i < vertices.length; i += 3) {
+          const localX = vertices[i];
+          const localY = vertices[i + 1];
+          const x = xMin + ((localX + safeWidth / 2) / safeWidth) * (xMax - xMin);
+          const y = yMin + ((localY + safeHeight / 2) / safeHeight) * (yMax - yMin);
+          const scope = { x, y, Math };
+          try {
+            const z = code.evaluate(scope);
+            vertices[i + 2] = Number.isFinite(z) ? z : 0;
+          } catch (e) {
+            vertices[i + 2] = 0;
+          }
+        }
+
+        geometry.computeVertexNormals();
+
+        material = new THREE.MeshPhongMaterial({
+          color: 0x1cb0f6,
+          side: THREE.DoubleSide,
+          wireframe: false,
+          flatShading: false,
+          shininess: 60,
+          transparent: true,
+          opacity: 0.85
+        });
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotation.x = -Math.PI / 2;
+        scene.add(mesh);
+
+        const wireframe = new THREE.WireframeGeometry(geometry);
+        const line = new THREE.LineSegments(wireframe);
+        line.material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
+        line.rotation.x = -Math.PI / 2;
+        scene.add(line);
+      } catch (error) {
+        console.error("3D Plot Error:", error);
       }
 
-      geometry.computeVertexNormals();
+      const animate = () => {
+        animationId = requestAnimationFrame(animate);
+        if (controlsRef.current) {
+          controlsRef.current.autoRotate = autoRotateRef.current;
+          controlsRef.current.update();
+        }
+        if (rendererRef.current && sceneRef.current && cameraRef.current) {
+          rendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
+        if (labelRendererRef.current && sceneRef.current && cameraRef.current) {
+          labelRendererRef.current.render(sceneRef.current, cameraRef.current);
+        }
+      };
+      animate();
 
-      material = new THREE.MeshPhongMaterial({
-        color: 0x1cb0f6,
-        side: THREE.DoubleSide,
-        wireframe: false,
-        flatShading: false,
-        shininess: 60,
-        transparent: true,
-        opacity: 0.85
+      resizeObserver = new ResizeObserver(() => {
+        if (!containerRef.current || !rendererRef.current || !cameraRef.current || !labelRendererRef.current) return;
+        const w = containerRef.current.clientWidth;
+        const h = containerRef.current.clientHeight;
+        if (w === 0 || h === 0) return;
+        rendererRef.current.setSize(w, h);
+        labelRendererRef.current.setSize(w, h);
+        cameraRef.current.aspect = w / h;
+        cameraRef.current.updateProjectionMatrix();
       });
-
-      const mesh = new THREE.Mesh(geometry, material);
-      mesh.rotation.x = -Math.PI / 2;
-      scene.add(mesh);
-
-      const wireframe = new THREE.WireframeGeometry(geometry);
-      const line = new THREE.LineSegments(wireframe);
-      line.material = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.2 });
-      line.rotation.x = -Math.PI / 2;
-      scene.add(line);
-
-    } catch (error) {
-      console.error("3D Plot Error:", error);
-    }
-
-    // Animation loop
-    let animationId: number;
-    const animate = () => {
-      animationId = requestAnimationFrame(animate);
-      if (controlsRef.current) {
-        controlsRef.current.autoRotate = autoRotateRef.current;
-        controlsRef.current.update();
-      }
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
-      if (labelRendererRef.current && sceneRef.current && cameraRef.current) {
-        labelRendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
+      resizeObserver.observe(container);
     };
-    animate();
 
-    // Resize handler
-    const handleResize = () => {
-      if (!containerRef.current || !rendererRef.current || !cameraRef.current || !labelRendererRef.current) return;
-      const w = containerRef.current.clientWidth;
-      const h = containerRef.current.clientHeight;
-      rendererRef.current.setSize(w, h);
-      labelRendererRef.current.setSize(w, h);
-      cameraRef.current.aspect = w / h;
-      cameraRef.current.updateProjectionMatrix();
-    };
-    window.addEventListener('resize', handleResize);
+    requestAnimationFrame(setup);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationId);
-      if (rendererRef.current && rendererRef.current.domElement) {
-        containerRef.current?.removeChild(rendererRef.current.domElement);
-      }
-      if (labelRendererRef.current && labelRendererRef.current.domElement) {
-        containerRef.current?.removeChild(labelRendererRef.current.domElement);
+      if (resizeObserver) resizeObserver.disconnect();
+      if (containerRef.current) {
+        if (rendererRef.current?.domElement) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
+        }
+        if (labelRendererRef.current?.domElement) {
+          containerRef.current.removeChild(labelRendererRef.current.domElement);
+        }
       }
       geometry?.dispose();
       material?.dispose();
     };
-  }, [data]); // Removed autoRotate from dependencies
+  }, [data, isStatic]);
 
   const resetCamera = () => {
     if (cameraRef.current && controlsRef.current) {
