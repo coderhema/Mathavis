@@ -209,12 +209,11 @@ const Waitlist: React.FC = () => {
       >
         {/* ── Mascot column ────────────────────────────────────────── */}
         <div
-          className="flex flex-col items-center justify-end py-8 px-6 relative overflow-hidden shrink-0"
+          className="flex flex-col items-center justify-end py-8 px-6 relative overflow-hidden w-full sm:w-[118px] shrink-0 border-b-2 sm:border-b-0 sm:border-r-2"
           style={{
-            width: 118,
-            minHeight: 280,
+            minHeight: 180,
             background: 'var(--sidebg)',
-            borderRight: '1px solid var(--border)',
+            borderColor: 'var(--border)',
           }}
         >
           {/* Ambient math symbols inside mascot panel */}
@@ -222,9 +221,9 @@ const Waitlist: React.FC = () => {
           <span className="math-float" style={{ top: '40%', right: '6px', fontSize: 10 }}>λ</span>
           <span className="math-float" style={{ bottom: '20%', left: '6px', fontSize: 11 }}>∂</span>
 
-          <div className={`chicken-wrap${chickenIn ? ' in' : ''}`}>
+          <div className={`chicken-wrap${chickenIn ? ' in' : ''} sm:scale-[0.65] sm:origin-center`}>
             <VoxelChicken
-              size={80}
+              size={120}
               emotion={status.type === 'success' ? 'happy' : step === 1 ? 'thinking' : 'neutral'}
               isAnimated={true}
               isCelebrating={isCelebrating}
@@ -373,11 +372,7 @@ const Waitlist: React.FC = () => {
                     {isSubmitting ? 'Saving…' : 'Join waitlist'}
                   </button>
                 )}
-              </div>
-
-              <p className="mono-hint">
-                Submissions are sent to the URL stored in GOOGLE_SHEET_LINK.
-              </p>
+               </div>
             </form>
           )}
         </div>
