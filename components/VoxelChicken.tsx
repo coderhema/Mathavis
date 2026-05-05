@@ -12,7 +12,7 @@ interface VoxelChickenProps {
 }
 
 const VoxelChicken: React.FC<VoxelChickenProps> = ({
-  size = 40,
+  size = 54,
   className = '',
   emotion = 'neutral',
   isAnimated = true,
@@ -41,10 +41,11 @@ const VoxelChicken: React.FC<VoxelChickenProps> = ({
     <svg
       width={size}
       height={size}
-      viewBox="0 0 100 100"
+      viewBox="-15 -10 130 120"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={`${className} drop-shadow-sm cursor-pointer active:scale-95 transition-transform`}
+      style={{ overflow: 'visible' }}
       onClick={() => soundService.playCluck()}
     >
       <style>{`
