@@ -54,19 +54,32 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       });
     }).ready;
 
-    document.documentElement.animate(
-      {
-        clipPath: [
-          `circle(0px at ${x}px ${y}px)`,
-          `circle(${endRadius}px at ${x}px ${y}px)`,
-        ],
-      },
-      {
-        duration: 800,
-        easing: 'ease-in-out',
-        pseudoElement: '::view-transition-new(root)',
-      }
-    );
+    const clipPath = [
+      `circle(0px at ${x}px ${y}px)`,
+      `circle(${endRadius}px at ${x}px ${y}px)`,
+    ];
+
+    if (nextDark) {
+      // Light to dark: new dark theme grows from 0
+      document.documentElement.animate(
+        { clipPath },
+        {
+          duration: 800,
+          easing: 'ease-in-out',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    } else {
+      // Dark to light: old dark theme shrinks away to 0, revealing light
+      document.documentElement.animate(
+        { clipPath: [...clipPath].reverse() },
+        {
+          duration: 800,
+          easing: 'ease-in-out',
+          pseudoElement: '::view-transition-old(root)',
+        }
+      );
+    }
   };
 
   return (

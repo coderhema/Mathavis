@@ -96,6 +96,12 @@
   animation: none;
   mix-blend-mode: normal;
 }
+.dark::view-transition-old(root) {
+  z-index: 2;
+}
+.dark::view-transition-new(root) {
+  z-index: 1;
+}
 
 /* ─── Global base ─────────────────────────────────────────────────────── */
 html {
