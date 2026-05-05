@@ -59,7 +59,10 @@ const Waitlist: React.FC = () => {
   const [willingness, setWillingness] = useState<SubscriptionWillingness | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [status, setStatus]     = useState<{ type: 'idle' | 'success' | 'error'; message: string }>({ type: 'idle', message: '' });
-  const [isDark, setIsDark]     = useState(() => document.documentElement.classList.contains('dark'));
+  const [isDark, setIsDark]     = useState(() => {
+    const stored = localStorage.getItem('mathlingo_dark_mode');
+    return stored !== null ? stored === 'true' : document.documentElement.classList.contains('dark');
+  });
   const [chickenIn, setChickenIn] = useState(false);
   const [confetti, setConfetti] = useState<Particle[]>([]);
   const [isCelebrating, setIsCelebrating] = useState(false);
@@ -72,6 +75,16 @@ const Waitlist: React.FC = () => {
     const t = setTimeout(() => setChickenIn(true), 200);
     return () => clearTimeout(t);
   }, []);
+
+  /* On mount: ensure document class matches initial isDark state */
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, []);
+
+  /* On state change: persist to localStorage */
+  useEffect(() => {
+    localStorage.setItem('mathlingo_dark_mode', String(isDark));
+  }, [isDark]);
 
 
   const resetStatus = () => {
