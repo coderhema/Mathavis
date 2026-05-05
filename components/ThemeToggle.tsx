@@ -35,11 +35,21 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       Math.max(y, window.innerHeight - y)
     );
 
-    // Fallback for unsupported browsers or reduced motion preference
     // @ts-ignore
     if (!document.startViewTransition || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       onToggle(nextDark);
       return;
+    }
+
+    // For dark→light, inject z-index swap so new (light) layer is on top
+    let swapStyle: HTMLStyleElement | null = null;
+    if (!nextDark) {
+      swapStyle = document.createElement('style');
+      swapStyle.textContent = `
+        ::view-transition-old(root) { z-index: 1; }
+        ::view-transition-new(root) { z-index: 2; }
+      `;
+      document.head.appendChild(swapStyle);
     }
 
     // @ts-ignore
@@ -54,32 +64,26 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       });
     }).ready;
 
-    const clipPath = [
-      `circle(0px at ${x}px ${y}px)`,
-      `circle(${endRadius}px at ${x}px ${y}px)`,
-    ];
+    document.documentElement.animate(
+      {
+        clipPath: [
+          `circle(0px at ${x}px ${y}px)`,
+          `circle(${endRadius}px at ${x}px ${y}px)`,
+        ],
+      },
+      {
+        duration: 800,
+        easing: 'ease-in-out',
+        pseudoElement: '::view-transition-new(root)',
+      }
+    );
 
-    if (nextDark) {
-      // Light to dark: new dark theme grows from 0
-      document.documentElement.animate(
-        { clipPath },
-        {
-          duration: 800,
-          easing: 'ease-in-out',
-          pseudoElement: '::view-transition-new(root)',
-        }
-      );
-    } else {
-      // Dark to light: old dark theme shrinks away to 0, revealing light
-      document.documentElement.animate(
-        { clipPath: [...clipPath].reverse() },
-        {
-          duration: 800,
-          easing: 'ease-in-out',
-          pseudoElement: '::view-transition-old(root)',
-        }
-      );
-    }
+    // Clean up the z-index swap style after animation completes
+    setTimeout(() => {
+      if (swapStyle && swapStyle.parentNode) {
+        document.head.removeChild(swapStyle);
+      }
+    }, 850);
   };
 
   return (
