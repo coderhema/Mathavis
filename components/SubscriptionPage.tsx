@@ -115,4 +115,3 @@ const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ isDarkMode, toggleD
 };
 
 export default SubscriptionPage;
-
