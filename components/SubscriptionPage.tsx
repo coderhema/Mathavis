@@ -5,6 +5,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { soundService } from '../services/soundService';
 
 interface SubscriptionPageProps {
+  onBackToAuth?: () => void;
   isDarkMode?: boolean;
   toggleDarkMode?: (nextDark: boolean) => void;
 }
@@ -39,11 +40,10 @@ const TIERS = [
   },
 ];
 
-const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ isDarkMode, toggleDarkMode }) => {
+const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onBackToAuth, isDarkMode, toggleDarkMode }) => {
   const goAuth = () => {
     soundService.playBoop();
-    window.history.pushState({}, '', '/');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    onBackToAuth?.();
   };
 
   return (

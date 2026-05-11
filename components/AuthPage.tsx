@@ -6,6 +6,7 @@ import { ThemeToggle } from './ThemeToggle';
 
 interface AuthPageProps {
   onLogin: () => void;
+  onOpenSubscription?: () => void;
   isDarkMode?: boolean;
   toggleDarkMode?: (nextDark: boolean) => void;
 }
@@ -22,7 +23,7 @@ const AUTH_FLOAT: FloatSymbol[] = [
   { top: '35%',  right: '14%', sym: 'λ' },
 ];
 
-const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode }) => {
+const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDarkMode, toggleDarkMode }) => {
   const [chickenIn, setChickenIn] = useState(false);
   const [mode, setMode] = useState<AuthMode>('login');
   const [name, setName] = useState('');
@@ -50,8 +51,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
 
   const openSubscription = () => {
     soundService.playBoop();
-    window.history.pushState({}, '', '/subscription');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    onOpenSubscription?.();
   };
 
   const handleLogin = (event?: React.FormEvent) => {
@@ -223,7 +223,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, isDarkMode, toggleDarkMode
             <label className="mono-label block">OTP Verification</label>
             <label htmlFor="otp-code" className="mono-hint block">6-digit code</label>
             <input id="otp-code" aria-describedby="auth-status" inputMode="numeric" autoComplete="one-time-code" className="ds-input" placeholder="6-digit code" value={otp} onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); resetStatus(); }} />
-            <p className="mono-hint">
+            <p id="auth-status" aria-live="polite" className="mono-hint">
               {status || 'Enter the code sent to your email.'}
             </p>
             <button type="submit" className="btn-cta w-full">
