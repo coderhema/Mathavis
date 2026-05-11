@@ -6,6 +6,7 @@ import Whiteboard from './components/Whiteboard';
 import Library from './components/Library';
 import AuthPage from './components/AuthPage';
 import Waitlist from './components/Waitlist';
+import SubscriptionPage from './components/SubscriptionPage';
 import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
@@ -172,6 +173,15 @@ const App: React.FC = () => {
     return (
       <>
         <Waitlist />
+        <Analytics />
+      </>
+    );
+  }
+
+  if (pathname === '/subscription') {
+    return (
+      <>
+        <SubscriptionPage isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
         <Analytics />
       </>
     );
