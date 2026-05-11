@@ -48,6 +48,11 @@
   --blue-tint:     rgba(37, 99, 235, 0.08);
   --blue-tint2:    rgba(37, 99, 235, 0.12);
 
+  /* Yellow alpha tints */
+  --yellow-tint:   rgba(251, 191, 36, 0.15);
+  --yellow-tint2:  rgba(251, 191, 36, 0.25);
+  --brand-yellow:  #fbbf24;
+
   /* Atmosphere */
   --mathfloat: #e8ecf1;
   --shadow:    0 4px 24px rgba(0, 0, 0, 0.07);
@@ -85,6 +90,10 @@
 
   --blue-tint:     rgba(59, 130, 246, 0.08);
   --blue-tint2:    rgba(59, 130, 246, 0.14);
+
+  --yellow-tint:   rgba(251, 191, 36, 0.15);
+  --yellow-tint2:  rgba(251, 191, 36, 0.25);
+  --brand-yellow:  #fbbf24;
 
   --mathfloat: #1a1d2e;
   --shadow:    0 4px 32px rgba(0, 0, 0, 0.4);

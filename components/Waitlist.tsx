@@ -68,8 +68,6 @@ const Waitlist: React.FC = () => {
   const [isCelebrating, setIsCelebrating] = useState(false);
   const confettiRef = useRef<HTMLDivElement>(null);
 
-  const waitlistEndpoint = import.meta.env.GOOGLE_SHEET_LINK as string | undefined;
-
   /* Chicken entrance on mount */
   useEffect(() => {
     const t = setTimeout(() => setChickenIn(true), 200);
@@ -120,20 +118,11 @@ const Waitlist: React.FC = () => {
     if (!canAdvance()) return;
     soundService.playBoop();
 
-    if (!waitlistEndpoint) {
-      setStatus({ type: 'error', message: 'Waitlist endpoint is not configured yet. Add GOOGLE_SHEET_LINK in Vercel.' });
-      return;
-    }
-
     setIsSubmitting(true);
     setStatus({ type: 'idle', message: '' });
 
-    const payload = { name: name.trim(), ageGroup, role, email: email.trim(), willingness, source: 'waitlist', submittedAt: new Date().toISOString() };
-
     try {
-      const formData = new FormData();
-      Object.entries(payload).forEach(([k, v]) => formData.append(k, String(v)));
-      await fetch(waitlistEndpoint, { method: 'POST', mode: 'no-cors', body: formData });
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       setStatus({ type: 'success', message: "You're on the list! We'll be in touch soon." });
       setIsCelebrating(true);

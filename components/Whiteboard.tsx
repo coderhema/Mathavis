@@ -107,7 +107,7 @@ const FormattedText: React.FC<{ text: string; highlightIndex?: number }> = ({ te
               const isKeyword = MATH_KEYWORDS.some(k => k.toLowerCase() === part.toLowerCase());
               if (isKeyword) {
                 return (
-                  <span key={i} className="px-1 py-0.5 rounded font-bold underline-offset-4 decoration-2" style={{ background: 'var(--blue-tint)', color: 'var(--blue)' }}>
+                  <span key={i} className="font-bold" style={{ color: 'var(--brand-yellow)' }}>
                     {part}
                   </span>
                 );
@@ -672,7 +672,6 @@ const Whiteboard: React.FC<WhiteboardProps> = ({
 
         {/* Input Dock */}
         <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col">
-            <div className="h-12 pointer-events-none" style={{ background: 'linear-gradient(to top, var(--bg2), transparent)' }} />
             
             {capturedImage && (
                 <div className="max-w-4xl mx-auto w-full min-w-0 px-4 mb-2 animate-in slide-in-from-bottom-2">

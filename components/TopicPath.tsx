@@ -64,7 +64,14 @@ const TopicPath: React.FC<TopicPathProps> = ({ topics, onSelectTopic, onNewModul
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
                             <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                                <Trophy className="text-brand-yellow" size={20} />
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"/>
+                                    <path d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"/>
+                                    <path d="M18 9h1.5a1 1 0 0 0 0-5H18"/>
+                                    <path d="M4 22h16"/>
+                                    <path d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"/>
+                                    <path d="M6 9H4.5a1 1 0 0 1 0-5H6"/>
+                                </svg>
                             </div>
                             <span className="mono-label opacity-80" style={{ color: 'rgba(255,255,255,0.8)' }}>Unit 1</span>
                         </div>
