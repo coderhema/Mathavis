@@ -6,6 +6,7 @@ import Whiteboard from './components/Whiteboard';
 import Library from './components/Library';
 import AuthPage from './components/AuthPage';
 import Waitlist from './components/Waitlist';
+import SubscriptionPage from './components/SubscriptionPage';
 import Leaderboard from './components/Leaderboard';
 import Shop from './components/Shop';
 import PracticeMenu from './components/PracticeMenu';
@@ -168,6 +169,11 @@ const App: React.FC = () => {
     setIsDarkMode(prev => nextDark !== undefined ? nextDark : !prev);
   };
 
+  const navigatePath = (nextPath: string) => {
+    window.history.pushState({}, '', nextPath);
+    setPathname(nextPath);
+  };
+
   if (pathname === '/waitlist') {
     return (
       <>
@@ -177,10 +183,19 @@ const App: React.FC = () => {
     );
   }
 
+  if (pathname === '/subscription') {
+    return (
+      <>
+        <SubscriptionPage onBackToAuth={() => navigatePath('/')} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+        <Analytics />
+      </>
+    );
+  }
+
   if (!isAuthenticated) {
       return (
         <>
-          <AuthPage onLogin={handleLogin} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
+          <AuthPage onLogin={handleLogin} onOpenSubscription={() => navigatePath('/subscription')} isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />
           <Analytics />
         </>
       );
