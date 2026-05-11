@@ -98,6 +98,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDark
     onLogin();
   };
 
+  const statusColor = status ? 'var(--error)' : 'var(--text3)';
+
   return (
     <div
       className="relative min-h-dvh flex flex-col items-center justify-center p-6 text-center dark-transition overflow-hidden"
@@ -178,7 +180,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDark
             <input id="login-email" aria-describedby="auth-status" className="ds-input" placeholder="Email" type="email" value={email} onChange={e => { setEmail(e.target.value); resetStatus(); }} />
             <label htmlFor="login-password" className="mono-hint block">Password</label>
             <input id="login-password" aria-describedby="auth-status" className="ds-input" placeholder="Password" type="password" value={password} onChange={e => { setPassword(e.target.value); resetStatus(); }} />
-            {status && <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: 'var(--error)' }}>{status}</p>}
+            <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: statusColor }}>{status || ' '}</p>
             <button type="submit" className="btn-cta w-full">Login</button>
             <button type="button" className="btn-ghost w-full" onClick={() => openMode('signup')}>Create account</button>
             <button type="button" className="btn-ghost w-full" onClick={() => openMode('forgot')}>Forgot password</button>
@@ -197,7 +199,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDark
             <input id="signup-password" aria-describedby="auth-status" className="ds-input" placeholder="Password" type="password" value={password} onChange={e => { setPassword(e.target.value); resetStatus(); }} />
             <label htmlFor="signup-confirm-password" className="mono-hint block">Confirm password</label>
             <input id="signup-confirm-password" aria-describedby="auth-status" className="ds-input" placeholder="Confirm password" type="password" value={confirmPassword} onChange={e => { setConfirmPassword(e.target.value); resetStatus(); }} />
-            {status && <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: 'var(--error)' }}>{status}</p>}
+            <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: statusColor }}>{status || ' '}</p>
             <button type="submit" className="btn-cta w-full">
               <MailCheck size={14} />
               Continue with OTP
@@ -210,7 +212,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDark
             <label className="mono-label block">Forgot password</label>
             <label htmlFor="forgot-email" className="mono-hint block">Email</label>
             <input id="forgot-email" aria-describedby="auth-status" className="ds-input" placeholder="Email" type="email" value={email} onChange={e => { setEmail(e.target.value); resetStatus(); }} />
-            {status && <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: 'var(--error)' }}>{status}</p>}
+            <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: statusColor }}>{status || ' '}</p>
             <button type="submit" className="btn-cta w-full">
               <MailCheck size={14} />
               Send OTP
@@ -223,7 +225,7 @@ const AuthPage: React.FC<AuthPageProps> = ({ onLogin, onOpenSubscription, isDark
             <label className="mono-label block">OTP Verification</label>
             <label htmlFor="otp-code" className="mono-hint block">6-digit code</label>
             <input id="otp-code" aria-describedby="auth-status" inputMode="numeric" autoComplete="one-time-code" className="ds-input" placeholder="6-digit code" value={otp} onChange={e => { setOtp(e.target.value.replace(/\D/g, '').slice(0, 6)); resetStatus(); }} />
-            <p id="auth-status" aria-live="polite" className="mono-hint">
+            <p id="auth-status" aria-live="polite" className="mono-hint" style={{ color: statusColor }}>
               {status || 'Enter the code sent to your email.'}
             </p>
             <button type="submit" className="btn-cta w-full">

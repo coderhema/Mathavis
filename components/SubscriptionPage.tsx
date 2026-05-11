@@ -46,6 +46,14 @@ const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onBackToAuth, isDar
     onBackToAuth?.();
   };
 
+  const handleTierAction = (tierName: string) => {
+    if (tierName === 'Classroom') {
+      window.location.href = 'mailto:hello@mathavis.com?subject=Mathavis%20Classroom%20Plan';
+      return;
+    }
+    goAuth();
+  };
+
   return (
     <div className="relative min-h-dvh p-6 sm:p-8 dark-transition overflow-hidden" style={{ background: 'var(--bg2)' }}>
       <div className="absolute top-5 right-5">
@@ -103,7 +111,7 @@ const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ onBackToAuth, isDar
                 ))}
               </ul>
 
-              <button onClick={goAuth} className={tier.featured ? 'btn-cta w-full' : 'btn-ghost w-full'}>
+              <button onClick={() => handleTierAction(tier.name)} className={tier.featured ? 'btn-cta w-full' : 'btn-ghost w-full'}>
                 {tier.cta}
               </button>
             </div>
